@@ -1,0 +1,2864 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Leitura 60 anos — Protótipo / Seções 01–03 — Galeria Desktop (v0.18)</title>
+  <meta name="description" content="Protótipo único da página Leitura 60 Anos, seções Hero, Nossa História e Galeria.">
+
+  <!-- Nunito corresponde à tipografia do Figma. Não há cópia local da fonte. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Tokens e medidas do frame Figma 3559:1712 — Desktop. */
+      --font-family: "Nunito", "Arial", sans-serif;
+      --surface-default: #ffffff;
+      --surface-brand-soft: #f5fbfe; /* Figma: Surface/Brand Soft */
+      --surface-subtle: #f7f7f7;
+      --blue-50: #f0f5ff;
+      --blue-neutral-200: #dde1e9;
+      --brand-primary: #0033a0;
+      --text-secondary: #525252;
+      --text-muted: #999999;
+      --stripe-01: #c1cb00;
+      --stripe-02: #ffe05c;
+      --stripe-03: #ff9f33;
+      --stripe-04: #f40062;
+      --stripe-05: #9f0088;
+
+      --spacing-32: 32px;
+      --spacing-36: 36px;
+      --spacing-56: 56px;
+      --spacing-64: 64px;
+      --hero-max-width: 1368px;
+      --hero-image-width: 43.75vw; /* 840 / 1920 */
+      --hero-min-height: 860px;
+      --global-header-height: 0px; /* O header global NÃO faz parte deste frame */
+      --decorative-stripe-height: 8px;
+      --summary-duration: 220ms;
+      --summary-ease: cubic-bezier(.25,.1,.25,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--surface-default);
+      font-family: var(--font-family);
+      color: var(--text-secondary);
+    }
+
+    /* A seção cresce em telas de pouca altura, com scroll NORMAL da página.
+       Nenhuma rolagem interna e nenhuma altura fixa de 896px. */
+    .hero {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      isolation: isolate;
+      width: 100%;
+      min-height: max(
+        calc(100vh - var(--global-header-height) - var(--decorative-stripe-height)),
+        var(--hero-min-height)
+      );
+      padding: var(--spacing-64) 0;
+      background: var(--surface-default);
+    }
+    @supports (height: 100dvh) {
+      .hero {
+        min-height: max(
+          calc(100dvh - var(--global-header-height) - var(--decorative-stripe-height)),
+          var(--hero-min-height)
+        );
+      }
+    }
+
+    /* A fotografia está FORA do max-width de conteúdo, encostada ao canto direito.
+       Ela acompanha o hero no scroll; não é sticky, fixed nem parallax. */
+    .hero__image {
+      position: absolute;
+      /* O hero JÁ desconta os 8px da faixa fixa em seu min-height.
+         Um segundo desconto no inset-bottom criava a faixa branca. */
+      inset: 0 0 0 auto;
+      width: var(--hero-image-width);
+      z-index: 0;
+      overflow: hidden;
+      border-radius: 48px 0 0 48px;
+      pointer-events: none;
+    }
+    .hero__image img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      border-radius: inherit;
+    }
+
+    .hero__container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex: 1 1 auto;
+      align-items: flex-end;
+      gap: var(--spacing-56);
+      width: 100%;
+      max-width: var(--hero-max-width);
+      min-width: 0;
+      min-height: 768px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-32);
+    }
+    .hero__left {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 0;
+      align-items: flex-start;
+      gap: var(--spacing-36);
+      min-width: 0;
+    }
+    .hero__spacer {
+      flex: 1 1 0;
+      max-width: 744px;
+      min-width: 0;
+      height: 326px;
+      pointer-events: none;
+    }
+    .hero__logo {
+      display: block;
+      width: 360px;
+      max-width: 100%;
+      height: auto;
+      aspect-ratio: 360 / 56;
+      object-fit: contain;
+    }
+    .hero__copy {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 0 -12px; /* Compensa a métrica Figma de texto aparado, sem recortar letras. */
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.532px;
+      color: var(--text-secondary);
+      overflow-wrap: anywhere;
+      text-wrap: balance;
+    }
+
+    /* Componente HeroSectionNavigation — breakpoint desktop.
+       O header é azul; APENAS os links expandidos usam a paleta de 5 cores. */
+    .summary {
+      position: relative;
+      width: 275px;
+      max-width: 100%;
+      flex: 0 0 auto;
+      overflow: hidden;
+      border: 1px solid var(--blue-neutral-200);
+      border-radius: 16px;
+      background: var(--surface-subtle);
+      padding-right: 24px;
+      transition: box-shadow var(--summary-duration) ease;
+    }
+    .summary__toggle {
+      display: flex;
+      align-items: center;
+      width: 273px;
+      height: 44px;
+      max-width: none;
+      padding: 0 12px 0 0;
+      border: 0;
+      color: var(--text-secondary);
+      background: var(--blue-50);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .summary__toggle:focus-visible,
+    .summary__list a:focus-visible {
+      outline: 2px solid var(--brand-primary);
+      outline-offset: -3px;
+    }
+    .summary__accent {
+      display: block;
+      flex: 0 0 6px;
+      align-self: stretch;
+      background: var(--brand-primary);
+      margin-right: 12px;
+    }
+    .summary__heading {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+    .summary__arrow {
+      flex: 0 0 auto;
+      font-size: 14px;
+      line-height: 16px;
+      font-weight: 700;
+      color: var(--brand-primary);
+      transition: transform var(--summary-duration) var(--summary-ease);
+      transform-origin: center center;
+    }
+    .summary[data-expanded="true"] .summary__arrow { transform: rotate(180deg); }
+    .summary[data-expanded="true"] .summary__toggle {
+      border-bottom: 1px solid var(--blue-neutral-200);
+    }
+
+    .summary__panel {
+      height: 0;
+      overflow: hidden;
+      transition: height var(--summary-duration) var(--summary-ease);
+      visibility: hidden;
+    }
+    .summary[data-expanded="true"] .summary__panel { visibility: visible; }
+    .summary__list {
+      width: 249px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .summary__list-item {
+      display: flex;
+      align-items: stretch;
+      height: 37px;
+    }
+    .summary__list-item:first-child,
+    .summary__list-item:last-child { height: 41px; }
+    .summary__list-item::before {
+      content: "";
+      display: block;
+      flex: 0 0 6px;
+      align-self: stretch;
+    }
+    .summary__list-item:nth-child(1)::before { background: var(--stripe-01); }
+    .summary__list-item:nth-child(2)::before { background: var(--stripe-02); }
+    .summary__list-item:nth-child(3)::before { background: var(--stripe-03); }
+    .summary__list-item:nth-child(4)::before { background: var(--stripe-04); }
+    .summary__list-item:nth-child(5)::before { background: var(--stripe-05); }
+
+    .summary__list a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 0 0 0 12px;
+      color: inherit;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .summary__number {
+      flex: 0 0 auto;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: -0.228px;
+      line-height: 1.2;
+      color: var(--text-muted);
+    }
+    .summary__label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.342px;
+      line-height: 1.2;
+      color: var(--text-secondary);
+    }
+    .summary__list a:is(:hover, :focus-visible) .summary__number,
+    .summary__list a:is(:hover, :focus-visible) .summary__label {
+      font-weight: 800;
+    }
+
+    /* Uma única faixa global decorativa — sempre fixa à viewport. */
+    .stripes {
+      position: fixed;
+      inset: auto 0 0;
+      z-index: 100;
+      display: flex;
+      width: 100%;
+      height: var(--decorative-stripe-height);
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .stripes span { width: 20%; height: 100%; }
+    .stripes span:nth-child(1) { background: var(--stripe-01); }
+    .stripes span:nth-child(2) { background: var(--stripe-02); }
+    .stripes span:nth-child(3) { background: var(--stripe-03); }
+    .stripes span:nth-child(4) { background: var(--stripe-04); }
+    .stripes span:nth-child(5) { background: var(--stripe-05); }
+
+
+    /* =====================================================================
+       Seção 01 — Tablet (Figma 3575:2061, 768px de referência).
+       Breakpoint isolado: 615px a 1023px. Componentes Desktop
+       acima permanecem INTACTOS. Não modificar HeroSectionNavigation.
+       ===================================================================== */
+    @media (min-width: 615px) and (max-width: 1023px) {
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 48px;
+        width: 100%;
+        /* O Hero Tablet é Hug Contents: termina no final da fotografia.
+           Não manter altura mínima baseada na viewport, mesmo em 100dvh. */
+        height: auto;
+        min-height: 0;
+        padding: 48px 0 0;
+      }
+      .hero__container {
+        order: 0;
+        display: flex;
+        flex: none;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0;
+        width: 100%;
+        max-width: none;
+        min-height: 0;
+        margin: 0;
+        padding: 0 32px;
+      }
+      .hero__left {
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        gap: 48px;
+      }
+      .hero__logo {
+        width: 320px;
+        max-width: 100%;
+        height: auto;
+      }
+      .hero__copy {
+        width: 100%;
+        max-width: 700px;
+        min-width: 0;
+        margin: 0 0 -10.2px; /* Figma trim-both: box 45px, 2 linhas a 24/1.15 */
+        font-size: 24px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.456px;
+      }
+      .hero__spacer { display: none; }
+      .hero__image {
+        position: relative;
+        inset: auto;
+        order: 1;
+        display: block;
+        flex: 0 0 auto;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 768 / 560;
+        min-height: 0;
+        overflow: hidden;
+        border-radius: 32px;
+        pointer-events: none;
+      }
+      .hero__image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+        border-radius: inherit;
+      }
+      /* HeroSectionNavigation é a mesma variante visual de Desktop:
+         275px fechado, 46px de altura, expandido via clique/toque. */
+    }
+
+    /* =====================================================================
+       Seção 01 — Mobile (Figma 3559:1758, 390px de referência).
+       Usar somente propriedades previstas na variante mobile aprovada.
+       Desktop >=1024px e Tablet 615–1023px permanecem inalterados.
+       ===================================================================== */
+    @media (max-width: 614px) {
+      :root { --decorative-stripe-height: 6px; }
+
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 36px;
+        width: 100%;
+        /* Mobile: seção termina exatamente no final da fotografia.
+           Não usar min-height baseado no viewport nem em --hero-min-height. */
+        height: auto;
+        min-height: 0;
+        padding: 48px 0 0;
+      }
+      .hero__container {
+        order: 0;
+        display: flex;
+        flex: none;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0;
+        width: 100%;
+        max-width: none;
+        min-height: 0;
+        margin: 0;
+        padding: 0 32px;
+      }
+      .hero__left {
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        gap: 24px;
+      }
+      .hero__logo {
+        width: 270px;
+        max-width: 100%;
+        height: auto;
+      }
+      .hero__copy {
+        width: 100%;
+        max-width: 700px;
+        min-width: 0;
+        margin: 0 0 -7.1px; /* Aparagem óptica do texto do Figma sem recorte real de glifos. */
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.342px;
+      }
+      .hero__spacer { display: none; }
+      .hero__image {
+        position: relative;
+        inset: auto;
+        order: 1;
+        display: block;
+        flex: 0 0 auto;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 768 / 560;
+        min-height: 0;
+        overflow: hidden;
+        border-radius: 24px;
+        pointer-events: none;
+      }
+      .hero__image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+        border-radius: inherit;
+      }
+
+      /* Reutilizar o mesmo componente Sumário, mas com variante mobile:
+         16px no título, 46px fechado e 229px expandido (Hug). */
+      .summary {
+        width: 275px;
+        max-width: 100%;
+      }
+      .summary__toggle {
+        width: calc(100% + 24px); /* 273px em 390px; fluido em telas compactas. */
+      }
+      .summary__heading { font-size: 16px; }
+      .summary__list { width: 249px; max-width: 100%; }
+      .summary__list-item { height: 35px; }
+      .summary__list-item:first-child,
+      .summary__list-item:last-child { height: 39px; }
+      .summary__list a { min-width: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .summary__panel, .summary__arrow { transition: none; }
+    }
+
+    /* ====================================================================
+       Seção 02 — Nossa história + linha do tempo.
+       Fonte de verdade: Figma 3788:3413 / Desktop.
+       CSS deliberadamente isolado: não alterar Seção 01 aprovada.
+       Tablet e Mobile: variantes responsivas abaixo, preservando Desktop.
+       ==================================================================== */
+    .history {
+      --history-ink: #303030;
+      --history-border: #c2c8d6;
+      width: 100%;
+      padding: 64px 0 64px;
+      background: var(--surface-subtle);
+      scroll-margin-top: var(--global-header-height);
+    }
+    .history__container {
+      width: min(100%, 1368px);
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+    .history__content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 48px;
+    }
+
+    /* SectionTitle — já aprovado no design system. */
+    .history__heading {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      width: max-content;
+      max-width: 100%;
+    }
+    .history__heading h2 {
+      margin: 0;
+      padding: 0 12px;
+      color: var(--text-secondary);
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.532px;
+      line-height: 1.15;
+      text-align: center;
+    }
+    .history__heading-stripes {
+      height: 4px;
+      width: 100%;
+      display: flex;
+      border-radius: 1px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .history__heading-stripes span { flex: 1 1 20%; }
+    .history__heading-stripes span:nth-child(1) { background: var(--stripe-01); }
+    .history__heading-stripes span:nth-child(2) { background: var(--stripe-02); }
+    .history__heading-stripes span:nth-child(3) { background: var(--stripe-03); }
+    .history__heading-stripes span:nth-child(4) { background: var(--stripe-04); }
+    .history__heading-stripes span:nth-child(5) { background: var(--stripe-05); }
+
+    /* O primeiro box contém toda a narrativa do Figma, rolável POR DENTRO.
+       A janela tem 560px de altura, mas o conteúdo NÃO é truncado ou removido.
+       Quando o leitor chega ao fim, o scroll da página continua na timeline. */
+    /* O raio pertence à moldura EXTERNA, que recorta a área de scroll.
+       O trilho da scrollbar fica recuado 10px, nunca saindo do canto. */
+    .history__narrative {
+      width: 100%;
+      max-width: 860px;
+      height: 560px;
+      min-height: 420px;
+      overflow: hidden;
+      border: 1px solid var(--history-border);
+      border-radius: 32px;
+      background: var(--surface-default);
+      outline-offset: 4px;
+    }
+    .history__narrative-scroll {
+      display: block;
+      width: calc(100% - 10px);
+      height: calc(100% - 24px);
+      margin: 12px 10px 12px 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--history-border) transparent;
+      overscroll-behavior-y: auto;
+      outline-offset: -3px;
+    }
+    .history__narrative-scroll::-webkit-scrollbar { width: 6px; }
+    .history__narrative-scroll::-webkit-scrollbar-track { background: transparent; }
+    .history__narrative-scroll::-webkit-scrollbar-thumb {
+      background: var(--history-border);
+      border-radius: 999px;
+    }
+    .history__narrative-scroll:focus-visible {
+      outline: 2px solid var(--brand-primary);
+    }
+    .history__narrative-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      /* Início visual do texto 48px após a borda, como no Figma.
+         O scroll interno inicia em y=12px, portanto top padding=36px. */
+      padding: 36px 38px 36px 48px;
+    }
+    .history__narrative h3 {
+      width: 100%;
+      margin: 0;
+      color: var(--history-ink);
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: -0.608px;
+    }
+    .history__narrative h4 {
+      width: 100%;
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: -0.456px;
+    }
+    .history__prose {
+      width: 100%;
+      color: var(--text-secondary);
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.25;
+      letter-spacing: -0.342px;
+      overflow-wrap: break-word;
+    }
+    .history__prose p {
+      margin: 0;
+    }
+    .history__prose p + p {
+      margin-top: 16px;
+    }
+    .history__figure {
+      width: 100%;
+      max-width: 560px;
+      margin: 0;
+      display: flex;
+      align-items: stretch;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .history__figure img {
+      display: block;
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 16px;
+    }
+    .history__figure figcaption {
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 600;
+      font-style: italic;
+      line-height: 1.25;
+      letter-spacing: -0.304px;
+    }
+
+    /* Timeline: eixo horizontal + anos/nós/conectores alinhados exatamente
+       aos centros dos cards. Sem posicionamento hardcoded de cada ano. */
+    .history__timeline {
+      width: 100%;
+      max-width: 1304px;
+      position: relative;
+      margin: 0;
+    }
+    .history__axis {
+      position: absolute;
+      top: 43px;
+      left: 34px;
+      right: 34px;
+      height: 2px;
+      background: var(--brand-primary);
+      pointer-events: none;
+    }
+    /* A janela inicial mostra exatamente dois cards de 480px + gap36px.
+       Em Figma desktop: margem lateral (1304 - 996)/2 = 154px.
+       Mais marcos ficam fora da janela até serem arrastados livremente. */
+    .history__milestones-viewport {
+      width: min(996px, calc(100% - 68px));
+      margin-inline: auto;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+      scroll-behavior: auto;
+      touch-action: pan-x pan-y;
+      cursor: grab;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .history__milestones-viewport::-webkit-scrollbar { display: none; }
+    .history__milestones-viewport[data-dragging="true"] { cursor: grabbing; }
+    .history__milestones-viewport:focus-visible {
+      outline: 2px solid var(--brand-primary);
+      outline-offset: 3px;
+    }
+    .history__milestones {
+      display: flex;
+      align-items: flex-start;
+      gap: 36px;
+      width: max-content;
+      max-width: none;
+      /* Intencionalmente SEM scroll-snap: drag livre, sem travar em cards. */
+      scroll-snap-type: none;
+    }
+    .history__milestone {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      flex: 0 0 480px;
+      width: 480px;
+      min-width: 0;
+    }
+    .history__milestone-marker {
+      position: relative;
+      height: 104px;
+      display: flex;
+      justify-content: center;
+    }
+    .history__milestone-year {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 100px;
+      text-align: center;
+      color: var(--brand-primary);
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.456px;
+    }
+    .history__milestone-node {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      top: 36px;
+      left: calc(50% - 8px);
+      display: block;
+    }
+    .history__milestone-connector {
+      position: absolute;
+      top: 52px;
+      left: calc(50% - 1px);
+      width: 2px;
+      height: 52px;
+      background: var(--brand-primary);
+    }
+    .history__milestone-card {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 20px;
+      width: 100%;
+      max-width: 480px;
+      min-height: 0;
+      margin: 0;
+      padding: 20px 20px 24px;
+      border: 1px solid var(--history-border);
+      border-radius: 24px;
+      background: var(--surface-default);
+    }
+    .history__milestone-card img {
+      width: 100%;
+      height: 260px;
+      border-radius: 16px;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    .history__milestone-card p {
+      width: 100%;
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: -0.304px;
+      text-wrap: balance;
+      overflow-wrap: break-word;
+    }
+    .history__timeline-arrow {
+      position: absolute;
+      top: 32px;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border: 0;
+      padding: 0;
+      background: var(--surface-brand-soft);
+      color: var(--brand-primary);
+      cursor: pointer;
+    }
+    .history__timeline-arrow:focus-visible {
+      outline: 2px solid var(--brand-primary);
+      outline-offset: 4px;
+      border-radius: 3px;
+    }
+    .history__timeline-arrow img { width: 24px; height: 24px; display: block; }
+    .history__timeline-arrow--previous { left: 0; }
+    .history__timeline-arrow--next { right: 0; }
+
+    /* FloatingSectionNavigation — componente aprovado 3614:1700.
+       Variante collapsed: 39×152. Variante expanded: 301×153.
+       250px de labels + 12px de gap + rail de 39px, right 50px. */
+    .floating-nav {
+      position: fixed;
+      top: 50%;
+      right: 50px;
+      z-index: 90;
+      width: 39px;
+      height: 153px;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 200ms ease, visibility 200ms ease;
+    }
+    .floating-nav[data-visible="true"] {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .floating-nav[data-expanded="true"] { width: 301px; }
+    .floating-nav__labels {
+      width: 250px;
+      height: 153px;
+      flex: 0 0 250px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+      background: var(--surface-default);
+      border: 1px solid var(--blue-neutral-200);
+      box-shadow: 0 0 4px rgb(0 0 0 / 10%);
+      border-radius: 8px;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, visibility 180ms ease;
+    }
+    .floating-nav[data-expanded="true"] .floating-nav__labels {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .floating-nav__labels a {
+      width: 100%;
+      height: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0;
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 13px;
+      color: #999;
+      text-align: right;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .floating-nav__labels a .floating-nav__number {
+      font-size: 14px;
+      font-weight: inherit;
+      line-height: inherit;
+    }
+    .floating-nav__labels a[aria-current="location"] {
+      font-weight: 800;
+      color: var(--brand-primary);
+    }
+    .floating-nav__labels a[aria-current="location"] .floating-nav__number {
+      color: #427eff;
+    }
+    .floating-nav__labels a:is(:hover, :focus-visible) {
+      color: var(--brand-primary);
+      font-weight: 800;
+    }
+    .floating-nav__labels a:is(:hover, :focus-visible) .floating-nav__number {
+      color: #427eff;
+    }
+    .floating-nav__rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 39px;
+      gap: 10px;
+      width: 39px;
+      height: 152px;
+      padding: 16px 12px;
+      border-radius: 8px;
+      background: var(--brand-primary);
+      box-shadow: 0 0 4px rgb(0 0 0 / 10%);
+    }
+    .floating-nav__rail a {
+      display: grid;
+      place-items: center;
+      flex: 0 0 16px;
+      width: 15px;
+      height: 16px;
+      outline-offset: 3px;
+    }
+    .floating-nav__rail img {
+      display: block;
+      width: 15px;
+      height: 16px;
+    }
+
+
+    /* ====================================================================
+       Nossa História / Tablet: Figma 3798:3413, panel 3922:7093.
+       Reusa a narrativa ORIGINAL do Desktop (mesma fonte e conteúdo); a
+       variação aprovada é de viewport, padding e scroll, não de conteúdo.
+       ==================================================================== */
+    @media (min-width: 615px) and (max-width: 1023px) {
+      .history {
+        display: block;
+        padding: 48px 0;
+      }
+      .history__container {
+        max-width: 1368px;
+        padding: 0 32px;
+      }
+      .history__content { gap: 48px; }
+      .history__heading h2 { line-height: 24px; }
+      .history__narrative {
+        display: block;
+        width: 100%;
+        max-width: 704px;
+        height: 560px;
+        min-height: 0;
+        border-radius: 32px;
+        overflow: hidden;
+      }
+      /* A scrollbar fica DENTRO do raio da moldura, sem vazar.
+         Top da cópia: 12px de margem do scroller + 24px de padding = 36px.
+         Largura da cópia: 704 - bordas(2) - trilho(10) - padding(36+26) = 630px. */
+      .history__narrative-scroll {
+        width: calc(100% - 10px);
+        height: calc(100% - 24px);
+        margin: 12px 10px 12px 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+      .history__narrative-content {
+        padding: 24px 26px 36px 36px;
+        gap: 32px;
+        align-items: center;
+      }
+      .history__narrative h3 { font-size: 32px; line-height: 1.25; }
+      .history__narrative h4 { font-size: 24px; line-height: 1.25; }
+      .history__prose { font-size: 18px; line-height: 1.25; letter-spacing: -0.342px; }
+      .history__figure { width: min(100%, 560px); max-width: 560px; }
+      .history__figure img { width: 100%; height: auto; aspect-ratio: 560 / 320; border-radius: 16px; }
+      /* Mesmo eixo, nós e conectores de Desktop; centros Tablet: 170 e 534. */
+      .history__timeline {
+        max-width: 704px;
+      }
+      .history__milestones-viewport {
+        width: 100%;
+        margin: 0;
+        scroll-snap-type: none;
+      }
+      .history__milestones {
+        gap: 24px;
+      }
+      .history__milestone {
+        flex: 0 0 340px;
+        width: 340px;
+      }
+      .history__milestone-card {
+        width: 340px;
+        max-width: 340px;
+        padding: 20px 20px 24px;
+        gap: 20px;
+      }
+      .history__milestone-card img {
+        height: 205px;
+        border-radius: 32px;
+      }
+      .history__axis { left: 34px; right: 34px; }
+
+      /* FloatingSectionNavigation aprovado — variante horizontal.
+         Recolhido 180×40; expandido 250×191 (labels 250×135 + gap16 + rail180×40).
+         Posição horizontalmente centralizada a 32px do rodapé. */
+      .floating-nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        width: 180px;
+        height: 40px;
+        top: auto;
+        right: auto;
+        bottom: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .floating-nav[data-expanded="true"] {
+        width: 250px;
+        height: 191px;
+      }
+      .floating-nav__labels {
+        width: 250px;
+        flex: 0 0 135px;
+        height: 135px;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 12px;
+        border: 0;
+        border-radius: 8px;
+        padding: 16px;
+        background: var(--surface-default);
+        box-shadow: 0 0 4px rgb(0 0 0 / 10%);
+      }
+      .floating-nav__labels a {
+        justify-content: flex-end;
+        flex-direction: row-reverse;
+        gap: 10px;
+        height: 11px;
+        font-size: 16px;
+        line-height: 11px;
+        font-weight: 500;
+        text-align: left;
+      }
+      .floating-nav__labels a .floating-nav__number {
+        font-size: 12px;
+        line-height: 11px;
+      }
+      .floating-nav__labels a[aria-current="location"] .floating-nav__number,
+      .floating-nav__labels a:is(:hover, :focus-visible) .floating-nav__number {
+        color: #427eff;
+      }
+      .floating-nav__rail {
+        flex: 0 0 40px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 180px;
+        height: 40px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgb(0 51 160 / 50%);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+        box-shadow: 0 0 4px rgb(0 0 0 / 10%);
+      }
+      /* Figma FloatingSectionNavigation horizontal, expanded=true:
+         sombra no painel branco E no rail azul, raio 10px / preto 35%.
+         Estado recolhido mantém sombra 4px/10% e backdrop blur 5px. */
+      .floating-nav[data-expanded="true"] .floating-nav__labels {
+        box-shadow: 0 0 10px rgb(0 0 0 / 35%);
+      }
+      .floating-nav[data-expanded="true"] .floating-nav__rail {
+        background: var(--brand-primary);
+        box-shadow: 0 0 10px rgb(0 0 0 / 35%);
+      }
+      .floating-nav__rail a {
+        flex: 0 0 20px;
+        width: 20px;
+        height: 16px;
+      }
+      /* SVG 15×16 original no centro do slot de 20×16; não esticar o vetor. */
+      .floating-nav__rail img {
+        width: 15px;
+        height: 16px;
+      }
+    }
+
+    /* =====================================================================
+       Seção 02 / Mobile: Figma 3799:3413 e estado aberto 3931:7150.
+       Não altera a Seção 01, Desktop ou Tablet aprovados.
+       ===================================================================== */
+    .history__mobile-track { display: none; }
+    @media (max-width: 614px) {
+      .history {
+        display: block;
+        padding: 48px 0;
+      }
+      .history__container {
+        width: 100%;
+        max-width: 1368px;
+        padding: 0 32px;
+      }
+      .history__content { gap: 32px; }
+      .history__heading { height: 33px; gap: 5px; flex: 0 0 33px; }
+      .history__heading h2 {
+        font-size: 24px;
+        line-height: 24px;
+        letter-spacing: -0.456px;
+      }
+      .history__heading-stripes { height: 4px; flex: 0 0 4px; }
+
+      /* Painel Figma 3922:7104 — width 326 e height 560 a 390px.
+         Moldura recorta a scrollbar, mantendo todo conteúdo acessível. */
+      .history__narrative {
+        width: 100%;
+        max-width: 860px;
+        height: 560px;
+        min-height: 0;
+        border-radius: 32px;
+        overflow: hidden;
+      }
+      .history__narrative-scroll {
+        width: calc(100% - 10px);
+        height: calc(100% - 24px);
+        margin: 12px 10px 12px 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .history__narrative-content {
+        gap: 32px;
+        padding: 12px 16px 36px 24px;
+      }
+      .history__narrative h3 {
+        font-size: 32px;
+        font-weight: 900;
+        line-height: 1.25;
+        letter-spacing: -0.608px;
+      }
+      .history__narrative h4 {
+        font-size: 21px;
+        font-weight: 900;
+        line-height: 1.25;
+        letter-spacing: -0.399px;
+      }
+      .history__prose {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+        letter-spacing: -0.304px;
+      }
+      .history__figure { width: 100%; max-width: none; }
+      .history__figure img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 560 / 320;
+        border-radius: 16px;
+      }
+      .history__figure figcaption { font-size: 16px; }
+
+      /* Um marco por vez; ano/eixo/nó permanecem fixos no centro do trilho.
+         Os cards deslizam livremente sem scroll-snap. */
+      .history__timeline {
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+      }
+      .history__axis { top: 43px; left: 34px; right: 34px; }
+      .history__mobile-track {
+        display: block;
+        position: absolute;
+        inset: 0 0 auto;
+        height: 104px;
+        pointer-events: none;
+      }
+      .history__mobile-year {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 100px;
+        text-align: center;
+        color: var(--brand-primary);
+        font-size: 24px;
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.456px;
+      }
+      .history__mobile-node {
+        position: absolute;
+        top: 36px;
+        left: calc(50% - 8px);
+        width: 16px;
+        height: 16px;
+      }
+      .history__mobile-connector {
+        position: absolute;
+        top: 52px;
+        left: calc(50% - 1px);
+        width: 2px;
+        height: 52px;
+        background: var(--brand-primary);
+      }
+      .history__milestones-viewport {
+        /* Carrossel Mobile: exatamente 1 card completo por visualização.
+           A viewport recorta os demais; o próximo só entra via drag/setas. */
+        --history-mobile-cards-per-view: 1;
+        --history-mobile-card-width: calc((100vw - 64px) / var(--history-mobile-cards-per-view));
+        width: 100%;
+        max-width: 100%;
+        margin: 104px 0 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: none; /* arrasto livre; snap apenas nas setas */
+      }
+      .history__milestones { gap: 24px; }
+      .history__milestone {
+        /* Um card inteiro = largura útil do container (viewport menos 64px).
+           Não usar 100% sobre a faixa width:max-content, que é cíclico. */
+        flex: 0 0 var(--history-mobile-card-width);
+        width: var(--history-mobile-card-width);
+        min-width: 0;
+      }
+      .history__milestone-marker { display: none; }
+      .history__milestone-card {
+        width: 100%;
+        max-width: none;
+        padding: 20px 20px 24px;
+        gap: 20px;
+        border-radius: 24px;
+      }
+      .history__milestone-card img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 284 / 208;
+        border-radius: 32px;
+      }
+      .history__milestone-card p {
+        font-size: 16px;
+        line-height: 1.35;
+        letter-spacing: -0.304px;
+      }
+      .history__timeline-arrow { top: 32px; }
+      .history__timeline-arrow--previous { left: 0; }
+      .history__timeline-arrow--next { right: 0; }
+
+      /* FloatingSectionNavigation / Horizontal Mobile — mesmo componente
+         da versão Tablet, alterando somente as medidas previstas em Figma.
+         Estado expandido: sombra 10px / rgba(0,0,0,.35) nos dois painéis. */
+      .floating-nav {
+        display: flex;
+        position: fixed;
+        top: auto;
+        right: auto;
+        bottom: 32px;
+        left: 50%;
+        z-index: 90;
+        transform: translateX(-50%);
+        width: 180px;
+        height: 40px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+      }
+      .floating-nav[data-expanded="true"] {
+        width: 250px;
+        height: 191px;
+      }
+      .floating-nav__labels {
+        width: 250px;
+        height: 135px;
+        flex: 0 0 135px;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 12px;
+        padding: 16px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--surface-default);
+        box-shadow: 0 0 4px rgb(0 0 0 / 10%);
+      }
+      .floating-nav__labels a {
+        justify-content: flex-end;
+        flex-direction: row-reverse;
+        gap: 10px;
+        height: 11px;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 11px;
+        text-align: left;
+      }
+      .floating-nav__labels a .floating-nav__number {
+        font-size: 12px;
+        line-height: 11px;
+      }
+      .floating-nav__rail {
+        flex: 0 0 40px;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        width: 180px;
+        height: 40px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: rgb(0 51 160 / 50%);
+        -webkit-backdrop-filter: blur(5px);
+        backdrop-filter: blur(5px);
+        box-shadow: 0 0 4px rgb(0 0 0 / 10%);
+      }
+      .floating-nav__rail a { width: 20px; height: 16px; flex: 0 0 20px; }
+      .floating-nav__rail img { width: 15px; height: 16px; }
+      .floating-nav[data-expanded="true"] .floating-nav__labels,
+      .floating-nav[data-expanded="true"] .floating-nav__rail {
+        box-shadow: 0 0 10px rgb(0 0 0 / 35%);
+      }
+      .floating-nav[data-expanded="true"] .floating-nav__rail {
+        background: var(--brand-primary);
+      }
+    }
+
+
+
+    /* ====================================================================
+       Seção 03 / Galeria — Desktop. Figma 3639:151 + hover 3639:243.
+       Componentes visuais: GalleryImage 3730:2184, GalleryPagination
+       3731:2186, CarouselButton 2001:3531. Seus SVGs são exportações
+       literais dos componentes aprovados, não aproximações desenhadas.
+       ==================================================================== */
+    .gallery {
+      width: 100%;
+      padding: 64px 0;
+      background: var(--brand-primary);
+      color: var(--surface-default);
+      scroll-margin-top: var(--global-header-height);
+    }
+    .gallery__container {
+      width: 100%;
+      max-width: 1368px;
+      margin: 0 auto;
+      padding: 0 32px;
+      overflow: hidden;
+    }
+    .gallery__content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+      width: 100%;
+    }
+    .gallery__heading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: max-content;
+      max-width: 100%;
+      height: 36px;
+    }
+    .gallery__heading h2 {
+      flex: 0 0 20px;
+      margin: -4px 0 0;
+      padding: 0 12px;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 28px;
+      letter-spacing: -.532px;
+      color: var(--surface-default);
+      white-space: nowrap;
+      text-align: center;
+    }
+    .gallery__heading-stripes {
+      display: flex;
+      width: 100%;
+      height: 4px;
+      flex: 0 0 4px;
+      overflow: hidden;
+      border-radius: 1px;
+      pointer-events: none;
+    }
+    .gallery__heading-stripes span {flex: 1 1 20%; min-width: 1px;}
+    .gallery__heading-stripes span:nth-child(1) { background: var(--stripe-01); }
+    .gallery__heading-stripes span:nth-child(2) { background: var(--stripe-02); }
+    .gallery__heading-stripes span:nth-child(3) { background: var(--stripe-03); }
+    .gallery__heading-stripes span:nth-child(4) { background: var(--stripe-04); }
+    .gallery__heading-stripes span:nth-child(5) { background: var(--stripe-05); }
+
+    /* GallerySubjectTabs: 3 placeholders 144×44, gap 16, total 464px. */
+    .gallery__tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      width: 464px;
+      max-width: 100%;
+      height: 44px;
+      flex: 0 0 44px;
+      overflow: hidden;
+    }
+    .gallery__tab {
+      display: flex;
+      flex: 0 0 144px;
+      width: 144px;
+      height: 44px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--surface-default);
+      font: 600 16px/19px var(--font-family);
+      cursor: pointer;
+    }
+    .gallery__tab span {white-space: nowrap;}
+    .gallery__tab::after {
+      content: '';
+      width: 96px;
+      height: 3px;
+      flex: 0 0 3px;
+      border-radius: 2px;
+      background: #3ba5f2;
+      opacity: 0;
+    }
+    .gallery__tab[aria-selected="true"] {font-weight: 800;}
+    .gallery__tab[aria-selected="true"]::after {opacity: 1;}
+    .gallery__tab:focus-visible {outline: 2px solid var(--surface-default); outline-offset: -2px;}
+
+    .gallery__carousel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      width: 100%;
+      max-width: 960px;
+      min-height: 420px;
+    }
+    .gallery__media {
+      position: relative;
+      display: flex;
+      flex: 0 0 450px;
+      width: 100%;
+      height: 450px;
+      overflow: hidden;
+      border-radius: 36px;
+      isolation: isolate;
+      outline-offset: 4px;
+      touch-action: pan-y;
+      /* Arrastar nunca deve selecionar a foto, a legenda ou o contador. */
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    .gallery__photo {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      border-radius: inherit;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+    /* GalleryImage caption=yes,state=hover: gradiente original 10%→80% */
+    .gallery__caption-layer {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 36px;
+      background: linear-gradient(to bottom, rgb(0 0 0 / 10%) 0%, rgb(0 0 0 / 80%) 100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+    }
+    .gallery__caption {
+      width: 100%;
+      max-width: 680px;
+      margin: 0;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      font-style: italic;
+      line-height: 1.15;
+      letter-spacing: -.304px;
+      text-align: left;
+    }
+    /* Hover/focus are approved states of GalleryImage. While pointer drag
+       is recognized, gesture takes precedence and caption becomes inert.
+       After changing slide by drag, the overlay remains closed until a new
+       hover entry or keyboard focus, as required by the Figma annotations. */
+    .gallery__media[data-has-caption="true"]:is(:hover, :focus-visible):not([data-dragging="true"]):not([data-hover-suppressed="true"]) .gallery__caption-layer,
+    .gallery__media[data-has-caption="true"][data-caption-open="true"]:not([data-dragging="true"]) .gallery__caption-layer {opacity: 1;}
+    .gallery__media[data-has-caption="false"] .gallery__caption-layer {display: none;}
+    .gallery__media[data-dragging="true"] {cursor: grabbing;}
+    .gallery__media[data-dragging="true"] .gallery__caption-layer {opacity: 0 !important;}
+    .gallery__media:focus-visible {outline: 2px solid var(--surface-default);}
+    .gallery__counter {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: max-content;
+      height: 32px;
+      min-width: 54px;
+      margin: 0;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgb(0 0 0 / 60%);
+      color: #fff;
+      font: 600 14px/1.2 var(--font-family);
+      pointer-events: none;
+    }
+    .gallery__controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      width: 212px;
+      height: 32px;
+    }
+    .gallery__control {
+      display: block;
+      position: relative;
+      flex: 0 0 36px;
+      width: 36px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+    }
+    .gallery__control img {display: block; position: absolute; inset: 0; width: 36px; height: 32px;}
+    .gallery__control .gallery__hover-svg {opacity: 0;}
+    .gallery__control:is(:hover, :focus-visible):not(:disabled) .gallery__hover-svg {opacity: 1;}
+    .gallery__control:disabled {cursor: default;}
+    .gallery__control:focus-visible {outline: 2px solid #fff; outline-offset: 2px; border-radius: 999px;}
+    /* Original GalleryPagination SVG, with its three original vector dots
+       animated as a compact previous/current/next window. Geometry, fills,
+       dot radii and 100×32px component contract remain unchanged. */
+    .gallery__pager {display: block; flex: 0 0 100px; width: 100px; height: 32px; overflow: hidden;}
+    .gallery__pager [data-gallery-pager-dots] {pointer-events: none;}
+    .floating-nav[data-gallery-active="true"] .floating-nav__rail {
+      background: #3ba5f2;
+    }
+    /* ================================================================
+       Galeria / Tablet — Figma 3743:3116 (default) e 3743:3173 (caption).
+       Só adapta o container e o crop; os componentes GalleryImage,
+       GalleryPagination e CarouselButton conservam estrutura/estados.
+       ================================================================ */
+    @media (min-width: 615px) and (max-width: 1023px) {
+      .gallery {
+        display: block;
+        padding: 48px 0;
+      }
+      /* Fill Container com 32px de margem de cada lado, como no frame. */
+      .gallery__container {max-width: 1368px; padding: 0 32px;}
+      .gallery__content {gap: 36px;}
+      .gallery__tabs {gap: 16px; width: 464px; height: 44px;}
+      .gallery__carousel {
+        width: 100%;
+        max-width: 960px;
+        gap: 24px;
+        min-height: 420px;
+      }
+      .gallery__media {
+        width: 100%;
+        height: auto;
+        flex: 0 0 auto;
+        aspect-ratio: 960 / 450;
+        border-radius: 36px;
+      }
+      /* Counter 20px, legenda original 36px, controls 212×32px
+         e GalleryPagination 100×32px continuam sem overrides. */
+
+      /* FloatingSectionNavigation — variante horizontal DARK da Galeria.
+         Reaproveita a única instância global, sem reproduzir outro menu.
+         A variação de cor acompanha o frame 3743:3160. */
+      .floating-nav[data-gallery-active="true"] .floating-nav__rail {
+        background: rgba(59, 165, 242, 0.5);
+        -webkit-backdrop-filter: blur(2.5px);
+        backdrop-filter: blur(2.5px);
+      }
+      .floating-nav[data-gallery-active="true"][data-expanded="true"] .floating-nav__rail {
+        background: #3ba5f2;
+      }
+    }
+    /* ==================================================================
+       Seção 03 — Galeria Mobile, Figma 3744:3194 / 3744:3251.
+       Três GallerySubjectSections empilhados; mesma GalleryImage,
+       GalleryPagination e CarouselButton (SVGs originais). A versão
+       Desktop/Tablet fica completamente fora deste bloco CSS.
+       ================================================================== */
+    .gallery__mobile-stack {display: none;}
+    @media (max-width: 614px) {
+      .gallery {
+        display: block;
+        padding: 48px 0 120px;
+      }
+      .gallery__container {
+        max-width: 1368px;
+        padding: 0 32px;
+      }
+      .gallery__content {gap: 36px;}
+      .gallery__tabs, #gallery-tabpanel {display: none;}
+      .gallery__mobile-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 48px;
+        width: 100%;
+        min-width: 0;
+      }
+      .gallery__mobile-subject {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        width: 100%;
+        min-width: 0;
+      }
+      .gallery__mobile-subject-heading {
+        margin: 0;
+        width: 100%;
+        font: 800 20px/1.25 var(--font-family);
+        color: var(--surface-default);
+        text-align: left;
+      }
+      .gallery__mobile-subject .gallery__carousel {
+        width: 100%;
+        max-width: 960px;
+        min-height: 0;
+        gap: 24px;
+      }
+      .gallery__mobile-subject .gallery__media {
+        /* Decisão responsiva aprovada: Fill Container + proporção 326:245.
+           A altura acompanha a largura, sem altura fixa do frame-base. */
+        flex: 0 0 auto;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 326 / 245;
+        border-radius: 24px;
+      }
+      .gallery__mobile-subject .gallery__counter {top: 12px; right: 12px;}
+      .gallery__mobile-subject .gallery__caption-layer {padding: 36px;}
+      .gallery__mobile-subject .gallery__controls {
+        flex: 0 0 32px;
+        width: 212px;
+        height: 32px;
+        gap: 20px;
+      }
+      /* Mesma instância GLOBAL do FloatingSectionNavigation,
+         variante horizontal dark. Sem criar nav dentro dos assuntos. */
+      .floating-nav[data-gallery-active="true"] .floating-nav__rail {
+        background: rgba(59, 165, 242, 0.5);
+        -webkit-backdrop-filter: blur(2.5px);
+        backdrop-filter: blur(2.5px);
+      }
+      .floating-nav[data-gallery-active="true"][data-expanded="true"] .floating-nav__rail {
+        background: #3ba5f2;
+      }
+    }
+    @media (hover: none) {
+      /* Touch não possui hover real: um toque abre a legenda, outro fecha.
+         Evita o :hover emulado pelo browser deixar o overlay preso. */
+      .gallery__media[data-has-caption="true"]:hover:not([data-caption-open="true"]) .gallery__caption-layer {
+        opacity: 0;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .gallery__caption-layer {transition: none;}
+    }
+
+  </style>
+</head>
+
+<body>
+  <main>
+    <!-- Único conteúdo implementado nesta etapa. Sem header/footer/sections fictícias. -->
+    <section class="hero" id="inicio" aria-label="Leitura — 60 anos" data-figma-node="3559:1712">
+      <div class="hero__image" data-figma-node="3559:2356">
+        <!-- Asset ORIGINAL exportado do preenchimento IMAGE do frame no Figma.
+             URL temporária do Figma: substituir por asset local antes do handoff definitivo. -->
+        <img
+          src="https://www.figma.com/api/mcp/asset/eb1369dd-d65f-44a7-bee7-9d40f1ddd4ea/880f8.png"
+          alt="Interior de uma livraria Leitura, com livros e produtos em exposição."
+          fetchpriority="high">
+      </div>
+
+      <div class="hero__container" data-figma-node="3559:1713">
+        <div class="hero__left" data-figma-node="3559:1714">
+          <!-- SVG ORIGINAL enviado pelo designer, salvo em assets/ sem rasterizar. -->
+          <img
+            class="hero__logo"
+            src="assets/leitura60-logo-original.svg"
+            width="360"
+            height="56"
+            alt="Leitura 60 anos"
+            data-figma-node="3559:2425">
+
+          <!-- Copy ainda não aprovada: preservada literalmente do frame Figma. -->
+          <p class="hero__copy" data-figma-node="3564:2442">Lorem ipsum dolor sit amet lorem ipsum dolor sit amet ipsum dolor sit amet ipsum dolor sit</p>
+
+          <nav
+            class="summary"
+            data-expanded="false"
+            aria-label="Sumário das seções da página"
+            data-figma-component="HeroSectionNavigation"
+            data-figma-node="3761:3496">
+            <button
+              class="summary__toggle"
+              type="button"
+              aria-expanded="false"
+              aria-controls="hero-summary-links">
+              <span class="summary__accent" aria-hidden="true"></span>
+              <span class="summary__heading">Sumário</span>
+              <span class="summary__arrow" aria-hidden="true">▼</span>
+            </button>
+            <div class="summary__panel" id="hero-summary-links" aria-hidden="true" inert>
+              <ol class="summary__list">
+                <li class="summary__list-item"><a href="#nossa-historia"><span class="summary__number">01</span><span class="summary__label">Nossa história</span></a></li>
+                <li class="summary__list-item"><a href="#galeria"><span class="summary__number">02</span><span class="summary__label">Galeria</span></a></li>
+                <li class="summary__list-item"><a href="#manifesto"><span class="summary__number">03</span><span class="summary__label">Manifesto</span></a></li>
+                <li class="summary__list-item"><a href="#deixe-seu-depoimento"><span class="summary__number">04</span><span class="summary__label">Deixe seu depoimento</span></a></li>
+                <li class="summary__list-item"><a href="#60-vozes"><span class="summary__number">05</span><span class="summary__label">60 vozes</span></a></li>
+              </ol>
+            </div>
+          </nav>
+        </div>
+
+        <div class="hero__spacer" aria-hidden="true" data-figma-node="3566:2454"></div>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         Seção 02 — Nossa História / Linha do tempo | Desktop
+         Figma: 3788:3413 Desktop / 3798:3413 Tablet.
+         Mobile Figma: 3799:3413 / 3931:7150.
+         =============================================================== -->
+    <section class="history" id="nossa-historia" aria-labelledby="history-title" data-figma-node="3788:3413">
+      <div class="history__container">
+        <div class="history__content">
+          <div class="history__heading" data-figma-node="3788:3416">
+            <h2 id="history-title">Nossa história</h2>
+            <div class="history__heading-stripes" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+
+
+          <!-- A narrativa completa é compartilhada pelo Desktop e Tablet.
+               Figma: 3788:3448 / 3922:7093. Conteúdo idêntico, medidas por CSS. -->
+          <!-- Conteúdo completo dentro de um painel de scroll próprio.
+               A janela fica em 560px, mas os 1492px de narrativa são
+               acessíveis até o final: teclado, touchpad, mouse e toque. -->
+          <article class="history__narrative" data-figma-node="3788:3448">
+            <div class="history__narrative-scroll" tabindex="0" role="region"
+                 aria-label="História da Leitura — texto completo com rolagem">
+              <div class="history__narrative-content" data-figma-node="3788:3449">
+              <h3>Quando o Amor pelas Palavras Transforma Destinos</h3>
+
+              <div class="history__prose" data-figma-node="3788:3452">
+                <p>Há histórias que começam antes de começarem. Que nascem no colo de uma mãe, na voz rouca de um pai contando causos à luz de lampião, muito antes de qualquer placa ser pendurada ou qualquer porta ser aberta ao público. A história da Livraria Leitura é uma dessas — uma história que começou como afeto, virou palavra e, da palavra, virou legado.</p>
+                <p>Tudo começou em Dores do Indaiá, cidade pequena no coração de Minas Gerais, onde o tempo parece caminhar mais devagar e as tardes se estendem como se quisessem durar para sempre. Foi lá que Maria da Conceição de Oliveira Teles, nascida em Bom Despacho, encontrou seu destino — e o nome dele era Emídio Teles de Carvalho.</p>
+              </div>
+
+              <figure class="history__figure" data-figma-node="3874:6888">
+                <!-- Mesmo IMAGE Fill original da Seção 01 (imageHash verificado
+                     no Figma). NÃO substituir a fotografia por outra. -->
+                <img class="history__shared-image" src="https://www.figma.com/api/mcp/asset/eb1369dd-d65f-44a7-bee7-9d40f1ddd4ea/880f8.png"
+                     alt="Vista interna de uma unidade da Leitura"
+                     width="560" height="320" loading="lazy">
+                <figcaption>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque eget ante ultricies, imperdiet augue nec, blandit ipsum.</figcaption>
+              </figure>
+
+              <div class="history__prose" data-figma-node="3874:6859">
+                <p>Ela era professora. Ele, fazendeiro e poeta. Se conheceram durante o curso Normal em Dores, numa época em que namoro se fazia de olhares discretos e cartas escritas à mão. Casaram-se, tiveram filhos e construíram um lar que, mais do que paredes e telhado, era feito de histórias.</p>
+                <p>Imagine a cena: as noites em Dores do Indaiá, o silêncio do interior interrompido apenas pelo canto dos grilos e pela voz cadenciada de Maria da Conceição, que cantava histórias populares para embalar o sono dos filhos. Emídio, por sua vez, enchia a sala de causos e versos — alguns verdadeiros, outros nem tanto, mas todos contados com o mesmo brilho nos olhos. Era ali, entre uma história e outra, que uma família inteira aprendia que as palavras podiam ser ninho, podiam ser abrigo e podiam ser o começo de tudo.</p>
+                <p>Esse amor pelas histórias não ficou só no ar das noites mineiras — foi registrado. D. Maria Teles eternizou parte desse universo em três livros: Memórias Impressas – A Família Couto Oliveira Cardoso, que resgata as raízes de sua família em Bom Despacho; Histórias da Vovó – Contos Populares Passados de Pais para Filhos, hoje em sua terceira edição, com 14 histórias cantadas e um CD que guarda, como um cofre, memórias afetivas de gerações; e “Minha Vida, Meu Tesouro”, obra que retrata sua trajetória, desde o nascimento até a construção de sua família, passando pelo casamento e pela chegada dos filhos, reunindo momentos marcantes e memórias especiais de sua história.</p>
+              </div>
+
+              <h4>A viagem de dois sonhadores</h4>
+              <div class="history__prose" data-figma-node="3878:6890">
+                <p>Anos mais tarde, esse amor pelos livros haveria de ganhar pernas — e uma delas seria a de Emídio Teles Filho. Junto do primo Lúcio, ele deixou para trás a vida tranquila do interior e partiu rumo a Belo Horizonte, levando pouco mais do que vontade de estudar, a vontade de trabalhar e o eco das histórias da infância ainda ressoando dentro dele.</p>
+                <p>Dividiam os dias entre o Colégio Estadual Central e o trabalho em meio expediente em bancos. Aos poucos, começaram a reunir livros usados — doados por amigos, parentes e quem mais quisesse ajudar dois rapazes com um sonho maior do que o bolso. Cada livro empilhado era como um tijolo colocado com cuidado, sem pressa, mas com fé.</p>
+              </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="history__timeline"
+               aria-label="Linha do tempo da Leitura"
+               data-figma-node="3789:3417">
+            <div class="history__axis" aria-hidden="true"></div>
+            <div class="history__mobile-track" aria-hidden="true" data-figma-node="3799:3456">
+              <span class="history__mobile-year" data-mobile-year>1983</span>
+              <img class="history__mobile-node" src="assets/history-timeline-node.svg" alt="">
+              <span class="history__mobile-connector"></span>
+            </div>
+            <!-- Setas vetoriais exportadas dos nós originais do Figma. -->
+            <button class="history__timeline-arrow history__timeline-arrow--previous"
+                    type="button" aria-label="Marco anterior" data-history-prev
+                    data-figma-node="3788:3455">
+              <img src="assets/history-arrow-left.svg" alt="">
+            </button>
+            <button class="history__timeline-arrow history__timeline-arrow--next"
+                    type="button" aria-label="Próximo marco" data-history-next
+                    data-figma-node="3788:3463">
+              <img src="assets/history-arrow-right.svg" alt="">
+            </button>
+
+            <div class="history__milestones-viewport" tabindex="0" role="region"
+                 aria-label="Linha do tempo — arraste horizontalmente para explorar os marcos"
+                 data-history-scroll>
+              <div class="history__milestones" aria-live="off">
+              <div class="history__milestone" data-history-year="1983">
+                <div class="history__milestone-marker">
+                  <span class="history__milestone-year" data-figma-node="3788:3459">1983</span>
+                  <img class="history__milestone-node" src="assets/history-timeline-node.svg" alt="">
+                  <span class="history__milestone-connector" aria-hidden="true"></span>
+                </div>
+                <article class="history__milestone-card" tabindex="-1" aria-label="Marco de 1983" data-figma-node="3788:3467">
+                  <img class="history__shared-image" src="https://www.figma.com/api/mcp/asset/eb1369dd-d65f-44a7-bee7-9d40f1ddd4ea/880f8.png"
+                       alt="Livraria Leitura — fotografia ilustrativa do marco de 1983"
+                       width="438" height="260" loading="lazy">
+                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec lacinia, libero nec scelerisque pharetra, ante ex egestas turpis, id pharetra enim mi eget turpis. Phasellus sed sem tempor, suscipit est quis, tincidunt orci. Maecenas non augue ut erat bibendum venenatis nec quis nulla.</p>
+                </article>
+              </div>
+
+              <div class="history__milestone" data-history-year="1986">
+                <div class="history__milestone-marker">
+                  <span class="history__milestone-year" data-figma-node="3788:3461">1986</span>
+                  <img class="history__milestone-node" src="assets/history-timeline-node.svg" alt="">
+                  <span class="history__milestone-connector" aria-hidden="true"></span>
+                </div>
+                <article class="history__milestone-card" tabindex="-1" aria-label="Marco de 1986" data-figma-node="3788:3470">
+                  <img class="history__shared-image" src="https://www.figma.com/api/mcp/asset/eb1369dd-d65f-44a7-bee7-9d40f1ddd4ea/880f8.png"
+                       alt="Livraria Leitura — fotografia ilustrativa do marco de 1986"
+                       width="438" height="260" loading="lazy">
+                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec lacinia, libero nec scelerisque pharetra, ante ex egestas turpis, id pharetra enim mi eget turpis. Phasellus sed sem tempor, suscipit est quis, tincidunt orci. Maecenas non augue ut erat bibendum venenatis nec quis nulla.</p>
+                </article>
+              </div>
+              <div class="history__milestone" data-history-year="1989" data-placeholder="true">
+                <div class="history__milestone-marker">
+                  <span class="history__milestone-year">1989</span>
+                  <img class="history__milestone-node" src="assets/history-timeline-node.svg" alt="">
+                  <span class="history__milestone-connector" aria-hidden="true"></span>
+                </div>
+                <article class="history__milestone-card" tabindex="-1" aria-label="Marco ilustrativo de teste 1989">
+                  <img class="history__shared-image" src="https://www.figma.com/api/mcp/asset/eb1369dd-d65f-44a7-bee7-9d40f1ddd4ea/880f8.png"
+                       alt="Fotografia repetida apenas para teste de navegação da linha do tempo"
+                       width="438" height="260" loading="lazy">
+                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec lacinia, libero nec scelerisque pharetra, ante ex egestas turpis, id pharetra enim mi eget turpis. Phasellus sed sem tempor, suscipit est quis, tincidunt orci. Maecenas non augue ut erat bibendum venenatis nec quis nulla.</p>
+                </article>
+              </div>
+              <div class="history__milestone" data-history-year="1992" data-placeholder="true">
+                <div class="history__milestone-marker">
+                  <span class="history__milestone-year">1992</span>
+                  <img class="history__milestone-node" src="assets/history-timeline-node.svg" alt="">
+                  <span class="history__milestone-connector" aria-hidden="true"></span>
+                </div>
+                <article class="history__milestone-card" tabindex="-1" aria-label="Marco ilustrativo de teste 1992">
+                  <img class="history__shared-image" src="https://www.figma.com/api/mcp/asset/eb1369dd-d65f-44a7-bee7-9d40f1ddd4ea/880f8.png"
+                       alt="Fotografia repetida apenas para teste de navegação da linha do tempo"
+                       width="438" height="260" loading="lazy">
+                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec lacinia, libero nec scelerisque pharetra, ante ex egestas turpis, id pharetra enim mi eget turpis. Phasellus sed sem tempor, suscipit est quis, tincidunt orci. Maecenas non augue ut erat bibendum venenatis nec quis nulla.</p>
+                </article>
+              </div>
+              <div class="history__milestone" data-history-year="1995" data-placeholder="true">
+                <div class="history__milestone-marker">
+                  <span class="history__milestone-year">1995</span>
+                  <img class="history__milestone-node" src="assets/history-timeline-node.svg" alt="">
+                  <span class="history__milestone-connector" aria-hidden="true"></span>
+                </div>
+                <article class="history__milestone-card" tabindex="-1" aria-label="Marco ilustrativo de teste 1995">
+                  <img class="history__shared-image" src="https://www.figma.com/api/mcp/asset/eb1369dd-d65f-44a7-bee7-9d40f1ddd4ea/880f8.png"
+                       alt="Fotografia repetida apenas para teste de navegação da linha do tempo"
+                       width="438" height="260" loading="lazy">
+                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec lacinia, libero nec scelerisque pharetra, ante ex egestas turpis, id pharetra enim mi eget turpis. Phasellus sed sem tempor, suscipit est quis, tincidunt orci. Maecenas non augue ut erat bibendum venenatis nec quis nulla.</p>
+                </article>
+              </div>
+              <div class="history__milestone" data-history-year="1998" data-placeholder="true">
+                <div class="history__milestone-marker">
+                  <span class="history__milestone-year">1998</span>
+                  <img class="history__milestone-node" src="assets/history-timeline-node.svg" alt="">
+                  <span class="history__milestone-connector" aria-hidden="true"></span>
+                </div>
+                <article class="history__milestone-card" tabindex="-1" aria-label="Marco ilustrativo de teste 1998">
+                  <img class="history__shared-image" src="https://www.figma.com/api/mcp/asset/eb1369dd-d65f-44a7-bee7-9d40f1ddd4ea/880f8.png"
+                       alt="Fotografia repetida apenas para teste de navegação da linha do tempo"
+                       width="438" height="260" loading="lazy">
+                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec lacinia, libero nec scelerisque pharetra, ante ex egestas turpis, id pharetra enim mi eget turpis. Phasellus sed sem tempor, suscipit est quis, tincidunt orci. Maecenas non augue ut erat bibendum venenatis nec quis nulla.</p>
+                </article>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================================================
+         Seção 03 / Galeria: Desktop 3639:151 / 3639:243; Tablet
+         3743:3116 / 3743:3173. Mobile será implementado depois.
+         =============================================================== -->
+    <section class="gallery" id="galeria" aria-labelledby="gallery-title" data-figma-node="3639:151">
+      <div class="gallery__container">
+        <div class="gallery__content">
+          <header class="gallery__heading" data-figma-node="3639:154">
+            <h2 id="gallery-title">Galeria</h2>
+            <div class="gallery__heading-stripes" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </header>
+          <div class="gallery__tabs" role="tablist" aria-label="Assuntos da galeria" data-figma-node="3804:3413">
+            <button class="gallery__tab" id="gallery-tab-0" type="button" role="tab" aria-selected="true" aria-controls="gallery-tabpanel" tabindex="0" data-gallery-tab="0"> <span>Assunto 01</span> </button>
+            <button class="gallery__tab" id="gallery-tab-1" type="button" role="tab" aria-selected="false" aria-controls="gallery-tabpanel" tabindex="-1" data-gallery-tab="1"> <span>Assunto 02</span> </button>
+            <button class="gallery__tab" id="gallery-tab-2" type="button" role="tab" aria-selected="false" aria-controls="gallery-tabpanel" tabindex="-1" data-gallery-tab="2"> <span>Assunto 03</span> </button>
+          </div>
+          <div class="gallery__carousel" id="gallery-tabpanel" role="tabpanel" aria-labelledby="gallery-tab-0" data-figma-node="3639:163">
+            <div class="gallery__media" role="group" aria-label="Fotografia da galeria" tabindex="0" data-has-caption="true" data-caption-open="false" data-dragging="false" data-hover-suppressed="false" data-figma-node="3810:3524">
+              <img class="gallery__photo" alt="Interior de uma livraria Leitura" src="assets/gallery/maceio-7423.jpg" width="960" height="450" loading="lazy" draggable="false">
+              <div class="gallery__caption-layer" aria-hidden="true" data-figma-node="3732:3103">
+                <p class="gallery__caption"></p>
+              </div>
+              <span class="gallery__counter" aria-live="polite" data-gallery-counter data-figma-node="3810:3525">1/3</span>
+            </div>
+            <div class="gallery__controls" data-figma-node="3639:1843">
+              <button class="gallery__control" type="button" aria-label="Foto anterior" data-gallery-previous data-figma-node="3639:1844">
+                <img src="assets/gallery-carousel-previous-default.svg" alt="" width="36" height="32">
+                <img class="gallery__hover-svg" src="assets/gallery-carousel-previous-hover.svg" alt="" width="36" height="32">
+              </button>
+              <!-- SVG exported from GalleryPagination original (3731:2186).
+                   Dots are the original 8/12/8px slots, updated only by
+                   JS to animate previous/current/next. No extra UI added. -->
+              <svg class="gallery__pager" width="100" height="32" viewBox="0 0 100 32" fill="none"
+                   aria-hidden="true" data-gallery-pager data-figma-node="3732:3090"
+                   xmlns="http://www.w3.org/2000/svg">
+                <rect width="100" height="32" rx="16" fill="#D9D9D9"/>
+                <g data-gallery-pager-dots clip-path="url(#gallery-pager-window)">
+                  <circle cx="26" cy="16" r="6" fill="#0033A0"/>
+                  <circle cx="50" cy="16" r="4" fill="#999999"/>
+                  <circle cx="74" cy="16" r="4" fill="#999999"/>
+                </g>
+                <defs><clipPath id="gallery-pager-window"><rect x="14" y="0" width="72" height="32"/></clipPath></defs>
+              </svg>
+              <button class="gallery__control" type="button" aria-label="Próxima foto" data-gallery-next data-figma-node="3639:1846">
+                <img src="assets/gallery-carousel-next-default.svg" alt="" width="36" height="32">
+                <img class="gallery__hover-svg" src="assets/gallery-carousel-next-hover.svg" alt="" width="36" height="32">
+              </button>
+            </div>
+          </div>
+          <!-- GallerySubjectsStack / Mobile (Figma 3805:3416).
+               Cada GalleryCarousel possui contador/pager/interação independentes. -->
+          <div class="gallery__mobile-stack" data-figma-node="3805:3416">
+            <section class="gallery__mobile-subject" data-gallery-mobile-subject="0"
+                     aria-labelledby="gallery-mobile-0-title" data-figma-node="3805:3417">
+              <h3 class="gallery__mobile-subject-heading" id="gallery-mobile-0-title">Assunto 01</h3>
+              <div class="gallery__carousel" role="group" aria-labelledby="gallery-mobile-0-title">
+                <div class="gallery__media" role="group" tabindex="0" aria-label="Foto 1"
+                     data-has-caption="true" data-caption-open="false"
+                     data-dragging="false" data-hover-suppressed="false"
+                     data-figma-node="3811:3531">
+                  <img class="gallery__photo" src="assets/gallery/maceio-7423.jpg"
+                       alt="Fotografia da Leitura" width="326" height="245"
+                       loading="lazy" draggable="false">
+                  <div class="gallery__caption-layer" aria-hidden="true"><p class="gallery__caption"></p></div>
+                  <span class="gallery__counter" aria-live="polite" data-gallery-counter>1/7</span>
+                </div>
+                <div class="gallery__controls" aria-label="Controles do Assunto 01">
+                  <button class="gallery__control" type="button" aria-label="Foto anterior" data-gallery-previous>
+                    <img src="assets/gallery-carousel-previous-default.svg" alt="" width="36" height="32">
+                    <img class="gallery__hover-svg" src="assets/gallery-carousel-previous-hover.svg" alt="" width="36" height="32">
+                  </button>
+                  <svg class="gallery__pager" width="100" height="32" viewBox="0 0 100 32"
+                       fill="none" xmlns="http://www.w3.org/2000/svg"
+                       aria-hidden="true" data-gallery-pager>
+                    <rect width="100" height="32" rx="16" fill="#D9D9D9"/>
+                    <g data-gallery-pager-dots clip-path="url(#gallery-mobile-0-pager-clip)">
+                      <circle cx="26" cy="16" r="6" fill="#0033A0"/>
+                      <circle cx="50" cy="16" r="4" fill="#999999"/>
+                      <circle cx="74" cy="16" r="4" fill="#999999"/>
+                    </g>
+                    <defs><clipPath id="gallery-mobile-0-pager-clip"><rect x="14" y="0" width="72" height="32"/></clipPath></defs>
+                  </svg>
+                  <button class="gallery__control" type="button" aria-label="Próxima foto" data-gallery-next>
+                    <img src="assets/gallery-carousel-next-default.svg" alt="" width="36" height="32">
+                    <img class="gallery__hover-svg" src="assets/gallery-carousel-next-hover.svg" alt="" width="36" height="32">
+                  </button>
+                </div>
+              </div>
+            </section>
+            <section class="gallery__mobile-subject" data-gallery-mobile-subject="1"
+                     aria-labelledby="gallery-mobile-1-title" data-figma-node="3805:3419">
+              <h3 class="gallery__mobile-subject-heading" id="gallery-mobile-1-title">Assunto 02</h3>
+              <div class="gallery__carousel" role="group" aria-labelledby="gallery-mobile-1-title">
+                <div class="gallery__media" role="group" tabindex="0" aria-label="Foto 1"
+                     data-has-caption="true" data-caption-open="false"
+                     data-dragging="false" data-hover-suppressed="false"
+                     data-figma-node="3811:3534">
+                  <img class="gallery__photo" src="assets/gallery/maceio-7423.jpg"
+                       alt="Fotografia da Leitura" width="326" height="245"
+                       loading="lazy" draggable="false">
+                  <div class="gallery__caption-layer" aria-hidden="true"><p class="gallery__caption"></p></div>
+                  <span class="gallery__counter" aria-live="polite" data-gallery-counter>1/6</span>
+                </div>
+                <div class="gallery__controls" aria-label="Controles do Assunto 02">
+                  <button class="gallery__control" type="button" aria-label="Foto anterior" data-gallery-previous>
+                    <img src="assets/gallery-carousel-previous-default.svg" alt="" width="36" height="32">
+                    <img class="gallery__hover-svg" src="assets/gallery-carousel-previous-hover.svg" alt="" width="36" height="32">
+                  </button>
+                  <svg class="gallery__pager" width="100" height="32" viewBox="0 0 100 32"
+                       fill="none" xmlns="http://www.w3.org/2000/svg"
+                       aria-hidden="true" data-gallery-pager>
+                    <rect width="100" height="32" rx="16" fill="#D9D9D9"/>
+                    <g data-gallery-pager-dots clip-path="url(#gallery-mobile-1-pager-clip)">
+                      <circle cx="26" cy="16" r="6" fill="#0033A0"/>
+                      <circle cx="50" cy="16" r="4" fill="#999999"/>
+                      <circle cx="74" cy="16" r="4" fill="#999999"/>
+                    </g>
+                    <defs><clipPath id="gallery-mobile-1-pager-clip"><rect x="14" y="0" width="72" height="32"/></clipPath></defs>
+                  </svg>
+                  <button class="gallery__control" type="button" aria-label="Próxima foto" data-gallery-next>
+                    <img src="assets/gallery-carousel-next-default.svg" alt="" width="36" height="32">
+                    <img class="gallery__hover-svg" src="assets/gallery-carousel-next-hover.svg" alt="" width="36" height="32">
+                  </button>
+                </div>
+              </div>
+            </section>
+            <section class="gallery__mobile-subject" data-gallery-mobile-subject="2"
+                     aria-labelledby="gallery-mobile-2-title" data-figma-node="3805:3428">
+              <h3 class="gallery__mobile-subject-heading" id="gallery-mobile-2-title">Assunto 03</h3>
+              <div class="gallery__carousel" role="group" aria-labelledby="gallery-mobile-2-title">
+                <div class="gallery__media" role="group" tabindex="0" aria-label="Foto 1"
+                     data-has-caption="true" data-caption-open="false"
+                     data-dragging="false" data-hover-suppressed="false"
+                     data-figma-node="3811:3537">
+                  <img class="gallery__photo" src="assets/gallery/maceio-7423.jpg"
+                       alt="Fotografia da Leitura" width="326" height="245"
+                       loading="lazy" draggable="false">
+                  <div class="gallery__caption-layer" aria-hidden="true"><p class="gallery__caption"></p></div>
+                  <span class="gallery__counter" aria-live="polite" data-gallery-counter>1/5</span>
+                </div>
+                <div class="gallery__controls" aria-label="Controles do Assunto 03">
+                  <button class="gallery__control" type="button" aria-label="Foto anterior" data-gallery-previous>
+                    <img src="assets/gallery-carousel-previous-default.svg" alt="" width="36" height="32">
+                    <img class="gallery__hover-svg" src="assets/gallery-carousel-previous-hover.svg" alt="" width="36" height="32">
+                  </button>
+                  <svg class="gallery__pager" width="100" height="32" viewBox="0 0 100 32"
+                       fill="none" xmlns="http://www.w3.org/2000/svg"
+                       aria-hidden="true" data-gallery-pager>
+                    <rect width="100" height="32" rx="16" fill="#D9D9D9"/>
+                    <g data-gallery-pager-dots clip-path="url(#gallery-mobile-2-pager-clip)">
+                      <circle cx="26" cy="16" r="6" fill="#0033A0"/>
+                      <circle cx="50" cy="16" r="4" fill="#999999"/>
+                      <circle cx="74" cy="16" r="4" fill="#999999"/>
+                    </g>
+                    <defs><clipPath id="gallery-mobile-2-pager-clip"><rect x="14" y="0" width="72" height="32"/></clipPath></defs>
+                  </svg>
+                  <button class="gallery__control" type="button" aria-label="Próxima foto" data-gallery-next>
+                    <img src="assets/gallery-carousel-next-default.svg" alt="" width="36" height="32">
+                    <img class="gallery__hover-svg" src="assets/gallery-carousel-next-hover.svg" alt="" width="36" height="32">
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- Única navegação flutuante global; fica invisível durante o Hero.
+       Figma: FloatingSectionNavigation / desktop / activeSection=01 -->
+  <nav class="floating-nav" data-visible="false" data-expanded="false"
+       aria-label="Navegação entre seções" data-figma-component="FloatingSectionNavigation"
+       data-figma-node="3614:1700">
+    <div class="floating-nav__labels" id="floating-section-labels">
+      <a href="#nossa-historia" aria-current="location"><span>Nossa história</span><span class="floating-nav__number">01</span></a>
+      <a href="#galeria"><span>Galeria</span><span class="floating-nav__number">02</span></a>
+      <a href="#manifesto"><span>Manifesto</span><span class="floating-nav__number">03</span></a>
+      <a href="#deixe-seu-depoimento"><span>Deixe seu depoimento</span><span class="floating-nav__number">04</span></a>
+      <a href="#60-vozes"><span>60 vozes</span><span class="floating-nav__number">05</span></a>
+    </div>
+    <div class="floating-nav__rail">
+      <a href="#nossa-historia" aria-label="Nossa história — seção atual" aria-current="location"><img src="assets/floating-rail-active.svg" alt=""></a>
+      <a href="#galeria" aria-label="Galeria"><img src="assets/floating-rail-default.svg" alt=""></a>
+      <a href="#manifesto" aria-label="Manifesto"><img src="assets/floating-rail-default.svg" alt=""></a>
+      <a href="#deixe-seu-depoimento" aria-label="Deixe seu depoimento"><img src="assets/floating-rail-default.svg" alt=""></a>
+      <a href="#60-vozes" aria-label="60 vozes"><img src="assets/floating-rail-default.svg" alt=""></a>
+    </div>
+  </nav>
+
+  <div class="stripes" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const summary = document.querySelector(".summary");
+      const button = summary.querySelector(".summary__toggle");
+      const panel = summary.querySelector(".summary__panel");
+      const list = summary.querySelector(".summary__list");
+      const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+      function setExpanded(expanded) {
+        summary.dataset.expanded = String(expanded);
+        button.setAttribute("aria-expanded", String(expanded));
+        panel.setAttribute("aria-hidden", String(!expanded));
+        panel.inert = !expanded;
+
+        const duration = reducedMotion.matches ? "0ms" : null;
+        if (duration) panel.style.transitionDuration = duration;
+        else panel.style.removeProperty("transition-duration");
+
+        panel.style.height = expanded ? `${list.getBoundingClientRect().height}px` : "0px";
+      }
+
+      button.addEventListener("click", () => {
+        setExpanded(summary.dataset.expanded !== "true");
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && summary.dataset.expanded === "true") {
+          setExpanded(false);
+          button.focus();
+        }
+      });
+
+      panel.querySelectorAll("a[href^='#']").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          const targetId = link.getAttribute("href").slice(1);
+          // Nesta etapa ainda não existem os outros frames. Seus links serão
+          // habilitados conforme as próximas seções forem adicionadas ao HTML.
+          const target = document.getElementById(targetId);
+          const available = target && getComputedStyle(target).display !== "none";
+          if (!available) event.preventDefault();
+          setExpanded(false);
+          if (available) {
+            const headerOffset = Number.parseFloat(
+              getComputedStyle(document.documentElement)
+                .getPropertyValue("--global-header-height")
+            ) || 0;
+            const top = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+            window.scrollTo({ top, behavior: reducedMotion.matches ? "auto" : "smooth" });
+          }
+        });
+      });
+
+      // Evita que a posição do painel fique desatualizada em alterações de
+      // fonte/reflow, sem modificar o layout ou as dimensões do componente.
+      document.fonts?.ready.then(() => {
+        if (summary.dataset.expanded === "true") setExpanded(true);
+      });
+    })();
+  </script>
+
+  <script>
+    (() => {
+      "use strict";
+      const history = document.querySelector("#nossa-historia");
+      const nav = document.querySelector(".floating-nav");
+      const historyNavQuery = matchMedia("(min-width: 0px)");
+      const compactHistoryQuery = matchMedia("(max-width: 1023px)");
+      const viewport = history.querySelector("[data-history-scroll]");
+      const milestones = [...viewport.querySelectorAll(".history__milestone")];
+      const arrowPrev = history.querySelector("[data-history-prev]");
+      const arrowNext = history.querySelector("[data-history-next]");
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+      const mobileYear = history.querySelector("[data-mobile-year]");
+      function syncMobileYear() {
+        if (!mobileYear || !milestones.length) return;
+        const nearest = milestones.reduce((best, card, i) => {
+          const dist = Math.abs(card.offsetLeft - milestones[0].offsetLeft - viewport.scrollLeft);
+          return dist < best.dist ? {i, dist} : best;
+        }, {i:0, dist:Infinity});
+        mobileYear.textContent = milestones[nearest.i].dataset.historyYear;
+      }
+      viewport.addEventListener("scroll", syncMobileYear, {passive:true});
+      syncMobileYear();
+
+      // Figma 3614:1700: o menu começa recolhido (39px); aberto 301px.
+      // Expandir SOMENTE quando o ponteiro entrar no rail, ou com foco.
+      const labels = [...nav.querySelectorAll(".floating-nav__labels a")];
+      const railItems = [...nav.querySelectorAll(".floating-nav__rail a")];
+      const sections = ["nossa-historia", "galeria", "manifesto", "deixe-seu-depoimento", "60-vozes"];
+      function setExpanded(open) {
+        nav.dataset.expanded = String(open && nav.dataset.visible === "true");
+        nav.querySelector(".floating-nav__labels").inert = nav.dataset.expanded !== "true";
+      }
+      function updateNav() {
+        if (!history || !nav) return;
+        // Visível a PARTIR de Nossa história, mesmo nas seções subsequentes.
+        const visible = historyNavQuery.matches &&
+          history.getBoundingClientRect().top <= window.innerHeight - 100;
+        nav.dataset.visible = String(visible);
+        nav.inert = !visible;
+        if (!visible) setExpanded(false);
+
+        const available = sections.map((id, i) => ({
+          id, i, element: document.getElementById(id)
+        })).filter(x => x.element && getComputedStyle(x.element).display !== "none");
+        const active = available.reduce((best, item) =>
+          item.element.getBoundingClientRect().top <= window.innerHeight * 0.5 ? item.i : best, 0);
+        // Variante aprovada do FloatingSectionNavigation na Galeria:
+        // background=dark → rail Light Blue/500. Mesma instância global.
+        nav.dataset.galleryActive = String(active === 1);
+        labels.forEach((item, i) => {
+          if (i === active) item.setAttribute("aria-current", "location");
+          else item.removeAttribute("aria-current");
+        });
+        railItems.forEach((item, i) => {
+          if (i === active) {
+            item.setAttribute("aria-current", "location");
+            item.setAttribute("aria-label", labels[i].querySelector("span").textContent + " — seção atual");
+          } else {
+            item.removeAttribute("aria-current");
+            item.setAttribute("aria-label", labels[i].querySelector("span").textContent);
+          }
+          const img = item.querySelector("img");
+          img.src = "assets/floating-rail-" + (i === active ? "active" : "default") + ".svg";
+        });
+      }
+      let escapeCollapsed = false;
+      nav.addEventListener("mouseenter", () => {
+        escapeCollapsed = false;
+        setExpanded(true);
+      });
+      nav.addEventListener("mouseleave", () => setExpanded(false));
+      // No Tablet, um toque na barra recolhida expande o componente antes de
+      // navegar. Um segundo toque no marcador pode seguir sua âncora.
+      let touchOpen = false;
+      nav.querySelector(".floating-nav__rail").addEventListener("pointerdown", event => {
+        if (compactHistoryQuery.matches && event.pointerType === "touch" &&
+            nav.dataset.expanded !== "true") {
+          touchOpen = true;
+          setExpanded(true);
+        }
+      });
+
+      nav.addEventListener("focusin", () => {
+        if (!escapeCollapsed) setExpanded(true);
+      });
+      nav.addEventListener("focusout", () => {
+        queueMicrotask(() => {
+          if (!nav.contains(document.activeElement)) {
+            escapeCollapsed = false;
+            setExpanded(false);
+          }
+        });
+      });
+      nav.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          escapeCollapsed = true;
+          setExpanded(false);
+          nav.querySelector(".floating-nav__rail a")?.focus();
+        }
+      });
+      [...labels, ...railItems].forEach(link => {
+        link.addEventListener("click", e => {
+          if (touchOpen && compactHistoryQuery.matches && railItems.includes(link)) {
+            e.preventDefault();
+            touchOpen = false;
+            return;
+          }
+          touchOpen = false;
+          const id = link.getAttribute("href").slice(1);
+          const target = document.getElementById(id);
+          if (!target || getComputedStyle(target).display === "none") e.preventDefault();
+          else setExpanded(false);
+        });
+      });
+      railItems.forEach((item, i) => {
+        const img = item.querySelector("img");
+        item.addEventListener("mouseenter", () => {
+          if (!item.hasAttribute("aria-current")) img.src = "assets/floating-rail-hover.svg";
+        });
+        item.addEventListener("mouseleave", () => {
+          if (!item.hasAttribute("aria-current")) img.src = "assets/floating-rail-default.svg";
+        });
+        item.addEventListener("focus", () => {
+          if (!item.hasAttribute("aria-current")) img.src = "assets/floating-rail-hover.svg";
+        });
+        item.addEventListener("blur", () => {
+          if (!item.hasAttribute("aria-current")) img.src = "assets/floating-rail-default.svg";
+        });
+      });
+      nav.querySelector(".floating-nav__labels").inert = true;
+      updateNav();
+      window.addEventListener("scroll", updateNav, {passive:true});
+      window.addEventListener("resize", updateNav, {passive:true});
+      historyNavQuery.addEventListener?.("change", updateNav);
+      window.addEventListener("resize", syncMobileYear, {passive:true});
+
+      // Drag horizontal LIVRE, sem snapping ou mudança forçada de posição.
+      // Os marcos conservam a disposição de cada breakpoint do Figma;
+      // os adicionais são placeholders que entram pela borda durante o arrasto.
+      let drag = null;
+      viewport.addEventListener("pointerdown", e => {
+        if (e.pointerType === "touch" || e.button !== 0) return;
+        drag = {x:e.clientX, left:viewport.scrollLeft, moved:false};
+        viewport.dataset.dragging = "true";
+        viewport.setPointerCapture(e.pointerId);
+      });
+      viewport.addEventListener("pointermove", e => {
+        if (!drag) return;
+        const dx = e.clientX - drag.x;
+        if (Math.abs(dx) > 3) drag.moved = true;
+        viewport.scrollLeft = drag.left - dx;
+      });
+      const stopDrag = () => {
+        drag = null;
+        viewport.dataset.dragging = "false";
+      };
+      viewport.addEventListener("pointerup", stopDrag);
+      viewport.addEventListener("pointercancel", stopDrag);
+      viewport.addEventListener("lostpointercapture", stopDrag);
+      viewport.addEventListener("dragstart", event => event.preventDefault());
+      viewport.addEventListener("click", event => {
+        if (drag?.moved) event.preventDefault();
+      }, true);
+
+      // Snap SOMENTE quando uma seta é acionada. A posição é calculada
+      // diretamente pelos cards reais, nunca por CSS scroll-snap.
+      const getArrowTargets = () => {
+        const first = milestones[0];
+        if (!first) return [0];
+        const maxScroll = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+        return [...new Set(milestones.map(card =>
+          Math.min(maxScroll, Math.max(0, card.offsetLeft - first.offsetLeft))
+        ))].sort((a, b) => a - b);
+      };
+
+      // Cliques sucessivos durante a animação avançam marcos diferentes.
+      let requestedArrowTarget = null;
+      function snapWithArrow(direction) {
+        const positions = getArrowTargets();
+        const current = requestedArrowTarget ?? viewport.scrollLeft;
+        const tolerance = 0.5;
+        const nextPosition = direction > 0
+          ? positions.find(x => x > current + tolerance)
+          : positions.findLast(x => x < current - tolerance);
+        if (nextPosition === undefined) return;
+        requestedArrowTarget = nextPosition;
+        viewport.scrollTo({
+          left: nextPosition,
+          behavior: reduce.matches ? "auto" : "smooth"
+        });
+      }
+      arrowPrev.addEventListener("click", () => { snapWithArrow(-1); });
+      arrowNext.addEventListener("click", () => { snapWithArrow(1); });
+
+      // Interações manuais continuam totalmente livres, sem alinhamento.
+      viewport.addEventListener("pointerdown", () => { requestedArrowTarget = null; });
+      viewport.addEventListener("wheel", () => { requestedArrowTarget = null; }, { passive: true });
+      viewport.addEventListener("scrollend", () => { requestedArrowTarget = null; });
+      viewport.addEventListener("keydown", e => {
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+          e.preventDefault();
+          viewport.scrollBy({left:e.key === "ArrowLeft" ? -80 : 80, behavior:"auto"});
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    (() => {
+      'use strict';
+      const gallery = document.getElementById('galeria');
+      if (!gallery) return;
+
+      // User-supplied original JPEG assets from Assets.zip. Each subject is
+      // still a placeholder: these are rotated demonstration image subsets,
+      // NOT an editorial categorization or chronology.
+      const galleryPhotos = [
+        {
+                "src": "assets/gallery/maceio-7423.jpg",
+                "alt": "Estantes de livros de uma unidade da Leitura em Maceió"
+        },
+        {
+                "src": "assets/gallery/maceio-7446.jpg",
+                "alt": "Livros e produtos expostos em uma unidade da Leitura em Maceió"
+        },
+        {
+                "src": "assets/gallery/loja-nova-28.jpg",
+                "alt": "Área de caixa e produtos de uma livraria Leitura"
+        },
+        {
+                "src": "assets/gallery/loja-nova-71.jpg",
+                "alt": "Estantes de livros com letreiro Leitura"
+        },
+        {
+                "src": "assets/gallery/loja-nova-75.jpg",
+                "alt": "Vista elevada do interior de uma livraria Leitura"
+        },
+        {
+                "src": "assets/gallery/ren-3480.jpg",
+                "alt": "Peças decorativas expostas em uma loja"
+        },
+        {
+                "src": "assets/gallery/ren-3503.jpg",
+                "alt": "Exposição de livros e corredores de uma livraria Leitura"
+        }
+];
+      const sampleCaption = 'Sed vel leo quis nisl consequat auctor et sit amet enim. Morbi faucibus vel ex vel fringilla. Cras posuere euismod felis quis imperdiet. Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+      // 7, 6 and 5 different consecutive photos per topic, preserving the
+      // current v0.19 pagination test counts and caption/no-caption cases.
+      const galleryOrders = [
+        [0, 1, 2, 3, 4, 5, 6],
+        [2, 3, 4, 5, 6, 0],
+        [5, 6, 0, 1, 2]
+      ];
+      const subjects = galleryOrders.map((order, subjectIndex) => ({
+        name: `Assunto 0${subjectIndex + 1}`,
+        images: order.map((photoIndex, index) => ({
+          ...galleryPhotos[photoIndex],
+          caption: index % 3 === 1 ? '' : sampleCaption
+        }))
+      }));
+      let activeSubject = 0;
+      let activeSlide = 0;
+      const tabs = [...gallery.querySelectorAll('[data-gallery-tab]')];
+      const tabpanel = gallery.querySelector('#gallery-tabpanel');
+      const media = gallery.querySelector('.gallery__media');
+      const photo = gallery.querySelector('.gallery__photo');
+      const caption = gallery.querySelector('.gallery__caption');
+      const counter = gallery.querySelector('[data-gallery-counter]');
+      const previous = gallery.querySelector('[data-gallery-previous]');
+      const next = gallery.querySelector('[data-gallery-next]');
+      const pager = gallery.querySelector('[data-gallery-pager]');
+      const dots = pager.querySelector('[data-gallery-pager-dots]');
+      const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      const isTouchUI = matchMedia('(hover: none)');
+      const SVG_NS = 'http://www.w3.org/2000/svg';
+      const grey = '#999999';
+      const blue = '#0033A0';
+      const DRAG_START = 8;
+      const SWIPE_MIN = 45;
+      let drag = null;
+      let suppressClickUntil = 0;
+      let lastPointerType = 'mouse';
+      let pagerToken = 0;
+      let pagerAnimations = [];
+
+      const closeCaption = () => {media.dataset.captionOpen = 'false';};
+      const setDragging = value => {media.dataset.dragging = String(value);};
+      // Preserve the original three GalleryPagination slots (8/12/8px).
+      // At the first slide, the left dot is active; on interior slides,
+      // the middle dot is active; at the LAST slide, the RIGHT dot is active.
+      const pagerState = index => {
+        const total = subjects[activeSubject].images.length;
+        const activeSlot = index === 0 ? 0 : index === total - 1 ? 2 : 1;
+        return [26, 50, 74].map((x, slot) => ({
+          x, radius: slot === activeSlot ? 6 : 4,
+          color: slot === activeSlot ? blue : grey
+        }));
+      };
+      const resetPager = (index = activeSlide) => {
+        pagerAnimations.forEach(animation => animation.cancel());
+        pagerAnimations = [];
+        pagerToken++;
+        dots.replaceChildren();
+        pagerState(index).forEach(({x, radius, color}) => {
+          const node = document.createElementNS(SVG_NS, 'circle');
+          node.setAttribute('cx', x);
+          node.setAttribute('cy', 16);
+          node.setAttribute('r', radius);
+          node.setAttribute('fill', color);
+          dots.appendChild(node);
+        });
+      };
+
+      // Keep the compact Swiper-style moving window for interior transitions.
+      // Entering or leaving a boundary animates the active bullet between
+      // left/center or center/right positions, keeping the original sizes.
+      const animatePager = (direction, previousIndex = activeSlide) => {
+        resetPager(previousIndex);
+        if (!direction || reduceMotion.matches) {
+          resetPager(activeSlide);
+          return;
+        }
+        const token = pagerToken;
+        const total = subjects[activeSubject].images.length;
+        const atBoundary = i => i === 0 || i === total - 1;
+        const duration = 240;
+        if (atBoundary(previousIndex) || atBoundary(activeSlide)) {
+          const before = pagerState(previousIndex);
+          const after = pagerState(activeSlide);
+          pagerAnimations = [...dots.children].map((node, i) => node.animate([
+            {r: `${before[i].radius}px`, fill: before[i].color},
+            {r: `${after[i].radius}px`, fill: after[i].color}
+          ], {duration, easing: 'ease-in-out', fill: 'forwards'}));
+        } else {
+          // All intermediate indices retain the traveling 3-dot window.
+          const step = direction > 0 ? -24 : 24;
+          const descriptors = direction > 0 ? [
+            {x:26, fromR:4, toR:4, fromFill:grey, toFill:grey, fromOpacity:1, toOpacity:0},
+            {x:50, fromR:6, toR:4, fromFill:blue, toFill:grey, fromOpacity:1, toOpacity:1},
+            {x:74, fromR:4, toR:6, fromFill:grey, toFill:blue, fromOpacity:1, toOpacity:1},
+            {x:98, fromR:4, toR:4, fromFill:grey, toFill:grey, fromOpacity:0, toOpacity:1}
+          ] : [
+            {x:2, fromR:4, toR:4, fromFill:grey, toFill:grey, fromOpacity:0, toOpacity:1},
+            {x:26, fromR:4, toR:6, fromFill:grey, toFill:blue, fromOpacity:1, toOpacity:1},
+            {x:50, fromR:6, toR:4, fromFill:blue, toFill:grey, fromOpacity:1, toOpacity:1},
+            {x:74, fromR:4, toR:4, fromFill:grey, toFill:grey, fromOpacity:1, toOpacity:0}
+          ];
+          dots.replaceChildren();
+          pagerAnimations = descriptors.map(d => {
+            const dot = document.createElementNS(SVG_NS, 'circle');
+            dot.setAttribute('cx', d.x);
+            dot.setAttribute('cy', 16);
+            dot.setAttribute('r', d.fromR);
+            dot.setAttribute('fill', d.fromFill);
+            dot.setAttribute('opacity', d.fromOpacity);
+            dots.appendChild(dot);
+            return dot.animate([
+              {transform: 'translateX(0px)', opacity: d.fromOpacity, fill: d.fromFill, r: `${d.fromR}px`},
+              {transform: `translateX(${step}px)`, opacity: d.toOpacity, fill: d.toFill, r: `${d.toR}px`}
+            ], {duration, easing: 'ease-in-out', fill: 'forwards'});
+          });
+        }
+        Promise.all(pagerAnimations.map(a => a.finished.catch(() => {}))).then(() => {
+          if (token === pagerToken) resetPager(activeSlide);
+        });
+      };
+
+      function render(direction = 0, previousIndex = activeSlide) {
+        const images = subjects[activeSubject].images;
+        const slide = images[activeSlide];
+        closeCaption();
+        photo.src = slide.src;
+        photo.alt = slide.alt;
+        caption.textContent = slide.caption || '';
+        media.dataset.hasCaption = String(Boolean(slide.caption?.trim()));
+        media.setAttribute('aria-label', `Foto ${activeSlide + 1} de ${images.length}, ${subjects[activeSubject].name}`);
+        counter.textContent = `${activeSlide + 1}/${images.length}`;
+        previous.disabled = activeSlide <= 0;
+        next.disabled = activeSlide >= images.length - 1;
+        pager.dataset.index = String(activeSlide);
+        pager.dataset.total = String(images.length);
+        // Logical previous/current/next window regardless of actual count.
+        pager.setAttribute('aria-label', `Imagem ${activeSlide + 1} de ${images.length}`);
+        tabs.forEach((tab, i) => {
+          const selected = i === activeSubject;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+        });
+        tabpanel.setAttribute('aria-labelledby', tabs[activeSubject].id);
+        animatePager(direction, previousIndex);
+      }
+      function selectSubject(index) {
+        activeSubject = index;
+        activeSlide = 0;
+        media.dataset.hoverSuppressed = 'true';
+        render();
+      }
+      function move(delta) {
+        const max = subjects[activeSubject].images.length - 1;
+        const target = Math.max(0, Math.min(max, activeSlide + delta));
+        if (target === activeSlide) return false;
+        const previousIndex = activeSlide;
+        activeSlide = target;
+        media.dataset.hoverSuppressed = 'true';
+        render(Math.sign(delta), previousIndex);
+        return true;
+      }
+      previous.addEventListener('click', () => move(-1));
+      next.addEventListener('click', () => move(1));
+      tabs.forEach((tab, i) => {
+        tab.addEventListener('click', () => selectSubject(i));
+        tab.addEventListener('keydown', event => {
+          if (!['ArrowRight','ArrowLeft','Home','End'].includes(event.key)) return;
+          event.preventDefault();
+          const target = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 :
+            (i + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+          selectSubject(target);
+          tabs[target].focus();
+        });
+      });
+
+      // Pointer events belong to the image container, never the overlay.
+      // Horizontal intent is recognized after 8px, navigation after 45px;
+      // the same gesture cannot both move a slide and toggle a caption.
+      media.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        // Impede a seleção nativa da imagem/texto no início do drag.
+        // Não cancelar touch: preserva scroll vertical e reconhecimento do swipe.
+        if (event.pointerType === 'mouse' && event.cancelable) event.preventDefault();
+        // A new gesture must not inherit click suppression from the previous
+        // swipe: a quick intentional tap after swiping can still show caption.
+        suppressClickUntil = 0;
+        lastPointerType = event.pointerType;
+        drag = {id:event.pointerId, startX:event.clientX, startY:event.clientY,
+          dx:0, dy:0, recognized:false, blocked:false};
+        if (event.pointerType === 'mouse') {
+          try {media.setPointerCapture(event.pointerId);} catch (_) {}
+        }
+      });
+      media.addEventListener('pointermove', event => {
+        // Pointer capture may swallow pointerleave while dragging. A fresh
+        // non-drag mouse movement is the earliest reliable point to reveal
+        // the caption again, after the new slide has started closed.
+        if (!drag) {
+          if (event.pointerType === 'mouse' && !event.buttons &&
+              media.dataset.hoverSuppressed === 'true') {
+            media.dataset.hoverSuppressed = 'false';
+          }
+          return;
+        }
+        if (drag.id !== event.pointerId || drag.blocked) return;
+        drag.dx = event.clientX - drag.startX;
+        drag.dy = event.clientY - drag.startY;
+        if (!drag.recognized && Math.abs(drag.dx) >= DRAG_START) {
+          if (Math.abs(drag.dx) > Math.abs(drag.dy) * 1.2) {
+            drag.recognized = true;
+            setDragging(true);
+            closeCaption();
+            media.dataset.hoverSuppressed = 'true';
+          } else if (Math.abs(drag.dy) > Math.abs(drag.dx)) {
+            drag.blocked = true; // Preserve native vertical page scrolling.
+          }
+        }
+      });
+      media.addEventListener('pointerup', event => {
+        if (!drag || drag.id !== event.pointerId) return;
+        const swipe = drag.recognized && Math.abs(drag.dx) >= SWIPE_MIN;
+        const recognized = drag.recognized;
+        const dx = drag.dx;
+        drag = null;
+        setDragging(false);
+        if (recognized) {
+          suppressClickUntil = Date.now() + 500;
+          const changed = swipe && move(dx < 0 ? 1 : -1);
+          if (!changed && event.pointerType === 'mouse') {
+            media.dataset.hoverSuppressed = 'false';
+          }
+        }
+      });
+      media.addEventListener('pointercancel', () => {
+        if (drag?.recognized) suppressClickUntil = Date.now() + 500;
+        drag = null;
+        setDragging(false);
+      });
+      media.addEventListener('lostpointercapture', () => {
+        if (drag) {drag = null; setDragging(false);}
+      });
+      media.addEventListener('dragstart', event => event.preventDefault());
+      media.addEventListener('focusin', () => {
+        // Keyboard focus is an approved caption reveal path even if a mouse
+        // drag previously suppressed hover on this particular slide.
+        media.dataset.hoverSuppressed = 'false';
+      });
+      media.addEventListener('pointerleave', () => {
+        if (!drag) media.dataset.hoverSuppressed = 'false';
+      });
+      media.addEventListener('click', event => {
+        if (Date.now() < suppressClickUntil) {
+          event.preventDefault();
+          return;
+        }
+        if ((lastPointerType !== 'mouse' || isTouchUI.matches || event.detail === 0) &&
+            media.dataset.hasCaption === 'true') {
+          media.dataset.captionOpen = String(media.dataset.captionOpen !== 'true');
+        }
+      });
+      gallery.addEventListener('pointerdown', event => {
+        if (!event.target.closest('.gallery__media') && !event.target.closest('.gallery__tabs')) {
+          closeCaption();
+        }
+      });
+      media.addEventListener('keydown', event => {
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+          event.preventDefault();
+          move(event.key === 'ArrowRight' ? 1 : -1);
+        }
+        if (event.key === 'Escape') closeCaption();
+        if ((event.key === 'Enter' || event.key === ' ') && media.dataset.hasCaption === 'true') {
+          event.preventDefault();
+          media.dataset.captionOpen = String(media.dataset.captionOpen !== 'true');
+        }
+      });
+      // Galeria Mobile: três instâncias dos mesmos componentes visuais,
+      // com estado de imagens, contador, legenda e paginação separados.
+      const mobileCarousels = [...gallery.querySelectorAll('[data-gallery-mobile-subject]')];
+      mobileCarousels.forEach(section => {
+        const subjectIndex = Number(section.dataset.galleryMobileSubject);
+        const images = subjects[subjectIndex].images;
+        const card = section.querySelector('.gallery__media');
+        const picture = section.querySelector('.gallery__photo');
+        const captionText = section.querySelector('.gallery__caption');
+        const count = section.querySelector('[data-gallery-counter]');
+        const prev = section.querySelector('[data-gallery-previous]');
+        const nextButton = section.querySelector('[data-gallery-next]');
+        const mobilePager = section.querySelector('[data-gallery-pager]');
+        const dotGroup = mobilePager.querySelector('[data-gallery-pager-dots]');
+        let index = 0;
+        let pointer = null;
+        let suppressUntil = 0;
+        let pointerKind = 'touch';
+        let token = 0;
+        let animations = [];
+        const close = () => {card.dataset.captionOpen = 'false';};
+        const states = pos => {
+          const active = pos === 0 ? 0 : pos === images.length - 1 ? 2 : 1;
+          return [26,50,74].map((x, i) => ({x,r:i===active?6:4,c:i===active?blue:grey}));
+        };
+        function paintPager(pos) {
+          animations.forEach(a => a.cancel());
+          animations = [];
+          token++;
+          dotGroup.replaceChildren();
+          states(pos).forEach(p => {
+            const circle = document.createElementNS(SVG_NS, 'circle');
+            circle.setAttribute('cx', p.x);
+            circle.setAttribute('cy', 16);
+            circle.setAttribute('r', p.r);
+            circle.setAttribute('fill', p.c);
+            dotGroup.appendChild(circle);
+          });
+        }
+        function animateMobilePager(before, after) {
+          paintPager(before);
+          if (reduceMotion.matches) {paintPager(after); return;}
+          const localToken = token;
+          const duration = 240;
+          const atEdge = n => n===0 || n===images.length-1;
+          if (atEdge(before) || atEdge(after)) {
+            const target = states(after);
+            animations = [...dotGroup.children].map((el, i) => el.animate([
+              {r:el.getAttribute('r')+'px',fill:el.getAttribute('fill')},
+              {r:target[i].r+'px',fill:target[i].c}
+            ],{duration,easing:'ease-in-out',fill:'forwards'}));
+          } else {
+            const forward = after > before;
+            const desc = forward ? [
+              [26,4,4,grey,grey,1,0], [50,6,4,blue,grey,1,1],
+              [74,4,6,grey,blue,1,1], [98,4,4,grey,grey,0,1]
+            ] : [
+              [2,4,4,grey,grey,0,1], [26,4,6,grey,blue,1,1],
+              [50,6,4,blue,grey,1,1], [74,4,4,grey,grey,1,0]
+            ];
+            dotGroup.replaceChildren();
+            animations = desc.map(([x,r0,r1,c0,c1,o0,o1]) => {
+              const circle = document.createElementNS(SVG_NS,'circle');
+              circle.setAttribute('cx',x);circle.setAttribute('cy',16);
+              circle.setAttribute('r',r0);circle.setAttribute('fill',c0);
+              circle.setAttribute('opacity',o0);
+              dotGroup.appendChild(circle);
+              return circle.animate([
+                {transform:'translateX(0px)',opacity:o0,r:r0+'px',fill:c0},
+                {transform:`translateX(${forward?-24:24}px)`,opacity:o1,r:r1+'px',fill:c1}
+              ],{duration,easing:'ease-in-out',fill:'forwards'});
+            });
+          }
+          Promise.all(animations.map(a=>a.finished.catch(()=>{}))).then(()=>{
+            if(token===localToken)paintPager(after);
+          });
+        }
+        function renderMobile(prevIndex=index) {
+          const photoItem = images[index];
+          close();
+          picture.src = photoItem.src;
+          picture.alt = photoItem.alt;
+          captionText.textContent = photoItem.caption || '';
+          card.dataset.hasCaption = String(Boolean(photoItem.caption?.trim()));
+          card.setAttribute('aria-label',`Foto ${index+1} de ${images.length}, ${subjects[subjectIndex].name}`);
+          count.textContent = `${index+1}/${images.length}`;
+          prev.disabled = index===0;
+          nextButton.disabled = index===images.length-1;
+          mobilePager.dataset.index=String(index);
+          mobilePager.dataset.total=String(images.length);
+          if(prevIndex===index)paintPager(index);
+          else animateMobilePager(prevIndex,index);
+        }
+        function go(delta) {
+          const target=Math.max(0,Math.min(images.length-1,index+delta));
+          if(target===index)return false;
+          const previousIndex=index;
+          index=target;
+          card.dataset.hoverSuppressed='true';
+          renderMobile(previousIndex);
+          return true;
+        }
+        prev.addEventListener('click',()=>go(-1));
+        nextButton.addEventListener('click',()=>go(1));
+        card.addEventListener('pointerdown',e=>{
+          if(e.pointerType==='mouse'&&e.button!==0)return;
+          if(e.pointerType==='mouse'&&e.cancelable)e.preventDefault();
+          suppressUntil=0;
+          pointerKind=e.pointerType;
+          pointer={id:e.pointerId,x:e.clientX,y:e.clientY,dx:0,dy:0,dragging:false,blocked:false};
+          if(e.pointerType==='mouse')try{card.setPointerCapture(e.pointerId);}catch(_){}
+        });
+        card.addEventListener('pointermove',e=>{
+          if(!pointer){
+            if(e.pointerType==='mouse'&&!e.buttons)card.dataset.hoverSuppressed='false';
+            return;
+          }
+          if(pointer.id!==e.pointerId||pointer.blocked)return;
+          pointer.dx=e.clientX-pointer.x;
+          pointer.dy=e.clientY-pointer.y;
+          if(!pointer.dragging&&Math.abs(pointer.dx)>=DRAG_START){
+            if(Math.abs(pointer.dx)>Math.abs(pointer.dy)*1.2){
+              pointer.dragging=true;
+              card.dataset.dragging='true';
+              card.dataset.hoverSuppressed='true';
+              close();
+            }else if(Math.abs(pointer.dy)>Math.abs(pointer.dx))pointer.blocked=true;
+          }
+        });
+        card.addEventListener('pointerup',e=>{
+          if(!pointer||pointer.id!==e.pointerId)return;
+          const wasDragging=pointer.dragging, dx=e.clientX-pointer.x;
+          pointer=null;card.dataset.dragging='false';
+          if(wasDragging){
+            suppressUntil=Date.now()+500;
+            if(Math.abs(dx)>=SWIPE_MIN)go(dx<0?1:-1);
+          }
+        });
+        card.addEventListener('pointercancel',()=>{
+          if(pointer?.dragging)suppressUntil=Date.now()+500;
+          pointer=null;card.dataset.dragging='false';
+        });
+        card.addEventListener('lostpointercapture',()=>{
+          if(pointer){pointer=null;card.dataset.dragging='false';}
+        });
+        card.addEventListener('dragstart',e=>e.preventDefault());
+        card.addEventListener('pointerleave',()=>{
+          if(!pointer)card.dataset.hoverSuppressed='false';
+        });
+        card.addEventListener('click',e=>{
+          if(Date.now()<suppressUntil){e.preventDefault();return;}
+          if(card.dataset.hasCaption==='true'&&
+             (pointerKind!=='mouse'||isTouchUI.matches||e.detail===0)){
+            card.dataset.captionOpen=String(card.dataset.captionOpen!=='true');
+          }
+        });
+        card.addEventListener('keydown',e=>{
+          if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
+            e.preventDefault();go(e.key==='ArrowLeft'?-1:1);
+          }
+          if(e.key==='Escape')close();
+          if((e.key==='Enter'||e.key===' ')&&card.dataset.hasCaption==='true'){
+            e.preventDefault();card.dataset.captionOpen=String(card.dataset.captionOpen!=='true');
+          }
+        });
+        section.addEventListener('pointerdown',e=>{
+          if(!e.target.closest('.gallery__media'))close();
+        });
+        renderMobile();
+      });
+      gallery.addEventListener('pointerdown',e=>{
+        if(!e.target.closest('.gallery__media')){
+          mobileCarousels.forEach(section=>{
+            const card=section.querySelector('.gallery__media');
+            card.dataset.captionOpen='false';
+          });
+        }else{
+          mobileCarousels.forEach(section=>{
+            const card=section.querySelector('.gallery__media');
+            if(!card.contains(e.target))card.dataset.captionOpen='false';
+          });
+        }
+      });
+      resetPager();
+      render();
+    })();
+  </script>
+
+</body>
+</html>
